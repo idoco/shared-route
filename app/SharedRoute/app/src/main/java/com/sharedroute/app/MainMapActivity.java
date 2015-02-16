@@ -15,28 +15,25 @@ import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.SupportMapFragment;
 import com.google.android.gms.maps.model.*;
-import org.java_websocket.client.WebSocketClient;
 
 public class MainMapActivity extends FragmentActivity implements
         GoogleApiClient.ConnectionCallbacks,
         GoogleApiClient.OnConnectionFailedListener,
         LocationListener {
 
-    private GoogleMap mMap; // Might be null if Google Play services APK is not available.
+    private GoogleMap mMap;
     private GoogleApiClient mGoogleApiClient;
-
-    private final String TAG = "SharedRouteApp";
     private Marker userLocationMarker;
+
+    private final String TAG = getString(R.string.app_name);
+    private final String serverURI = getString(R.string.server_uri);
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main_map);
-        if (mGoogleApiClient == null) {
-            buildGoogleApiClient();
-        }
+        buildGoogleApiClientIfNeeded();
         setUpMapIfNeeded();
-        String serverURI = getString(R.string.server_uri);
         SharedLocationService.requestMapUpdates(serverURI, mMap);
     }
 
@@ -44,6 +41,7 @@ public class MainMapActivity extends FragmentActivity implements
     protected void onResume() {
         super.onResume();
         setUpMapIfNeeded();
+        buildGoogleApiClientIfNeeded();
     }
 
     private void setUpMapIfNeeded() {
@@ -55,57 +53,24 @@ public class MainMapActivity extends FragmentActivity implements
             return;
         }
 
-        customizeMap(mMap);
-        addRoutesToMap(mMap);
+        MapBuildUtils.customizeMap(mMap, getResources().getAssets());
+        MapBuildUtils.addRoutesToMap(mMap);
 
         LatLng initialLatLng = new LatLng(32.0807898,34.7731816);
         CameraUpdate upd = CameraUpdateFactory.newLatLngZoom(initialLatLng, 16);
         mMap.moveCamera(upd);
     }
 
-    private void customizeMap(final GoogleMap mMap) {
-        mMap.setMapType(GoogleMap.MAP_TYPE_NONE);
-        mMap.getUiSettings().setZoomControlsEnabled(true);
-        mMap.getUiSettings().setZoomGesturesEnabled(true);
-
-        CustomMapTileProvider customMapTileProvider = new CustomMapTileProvider(getResources().getAssets());
-        mMap.addTileOverlay(new TileOverlayOptions().tileProvider(customMapTileProvider));
-
-        //todo: test this
-        mMap.setOnCameraChangeListener(new GoogleMap.OnCameraChangeListener() {
-            @Override
-            public void onCameraChange(CameraPosition cameraPosition) {
-                if (cameraPosition.zoom < 15){
-                    CameraUpdate fixedZoomUpdate= CameraUpdateFactory.newLatLngZoom(cameraPosition.target, 15);
-                    mMap.moveCamera(fixedZoomUpdate);
-                } else if (cameraPosition.zoom > 17){
-                    CameraUpdate fixedZoomUpdate= CameraUpdateFactory.newLatLngZoom(cameraPosition.target, 17);
-                    mMap.moveCamera(fixedZoomUpdate);
-                }
-            }
-        });
+    protected synchronized void buildGoogleApiClientIfNeeded() {
+        if (mGoogleApiClient == null) {
+            mGoogleApiClient = new GoogleApiClient.Builder(this)
+                    .addConnectionCallbacks(this)
+                    .addOnConnectionFailedListener(this)
+                    .addApi(LocationServices.API)
+                    .build();
+            mGoogleApiClient.connect();
+        }
     }
-
-    private void addRoutesToMap(GoogleMap mMap) {
-
-    }
-
-    protected synchronized void buildGoogleApiClient() {
-        mGoogleApiClient = new GoogleApiClient.Builder(this)
-                .addConnectionCallbacks(this)
-                .addOnConnectionFailedListener(this)
-                .addApi(LocationServices.API)
-                .build();
-
-        mGoogleApiClient.connect();
-    }
-
-//    private void addRoute() {
-//        LatLng a = new LatLng(32.0807898,34.7731816);
-//        LatLng b = new LatLng(32.0799603,34.7738789);
-//        PolylineOptions polylineOptions = new PolylineOptions().add(a,b).color(Color.RED);
-//        mMap.addPolyline(polylineOptions);
-//    }
 
     @Override
     public void onConnected(Bundle bundle) {
@@ -115,16 +80,6 @@ public class MainMapActivity extends FragmentActivity implements
 
         LocationServices.FusedLocationApi.requestLocationUpdates(
                 mGoogleApiClient, mLocationRequest, this);
-    }
-
-    @Override
-    public void onConnectionSuspended(int i) {
-        Log.i(TAG, "GoogleApiClient connection has been suspend");
-    }
-
-    @Override
-    public void onConnectionFailed(ConnectionResult connectionResult) {
-        Log.i(TAG, "GoogleApiClient connection has failed");
     }
 
     @Override
@@ -146,5 +101,15 @@ public class MainMapActivity extends FragmentActivity implements
         } else {
             userLocationMarker.setPosition(userLatLng);
         }
+    }
+
+    @Override
+    public void onConnectionSuspended(int i) {
+        Log.i(TAG, "GoogleApiClient connection has been suspend");
+    }
+
+    @Override
+    public void onConnectionFailed(ConnectionResult connectionResult) {
+        Log.i(TAG, "GoogleApiClient connection has failed");
     }
 }

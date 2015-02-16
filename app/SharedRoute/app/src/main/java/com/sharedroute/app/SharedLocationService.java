@@ -1,7 +1,5 @@
 package com.sharedroute.app;
 
-import android.content.Context;
-import android.content.ContextWrapper;
 import android.os.Build;
 import android.util.Log;
 import com.google.android.gms.maps.GoogleMap;
