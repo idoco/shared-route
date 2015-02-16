@@ -4,6 +4,7 @@ import android.content.Context;
 import android.content.ContextWrapper;
 import android.os.Build;
 import android.util.Log;
+import com.google.android.gms.maps.GoogleMap;
 import org.java_websocket.client.WebSocketClient;
 import org.java_websocket.handshake.ServerHandshake;
 
@@ -14,9 +15,9 @@ import java.net.URISyntaxException;
  * Created by cohid01 on 13/02/2015.
  *
  */
-public class LocationUpdatesService {
+public class SharedLocationService {
 
-    public static WebSocketClient connectWebSocket(String serverURI) {
+    public static WebSocketClient requestMapUpdates(String serverURI, GoogleMap mMap) {
 
         URI uri;
         try {

@@ -17,7 +17,6 @@ import com.google.android.gms.maps.SupportMapFragment;
 import com.google.android.gms.maps.model.*;
 import org.java_websocket.client.WebSocketClient;
 
-
 public class MainMapActivity extends FragmentActivity implements
         GoogleApiClient.ConnectionCallbacks,
         GoogleApiClient.OnConnectionFailedListener,
@@ -28,7 +27,6 @@ public class MainMapActivity extends FragmentActivity implements
 
     private final String TAG = "SharedRouteApp";
     private Marker userLocationMarker;
-    private WebSocketClient mWebSocketClient;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -39,7 +37,7 @@ public class MainMapActivity extends FragmentActivity implements
         }
         setUpMapIfNeeded();
         String serverURI = getString(R.string.server_uri);
-        mWebSocketClient = LocationUpdatesService.connectWebSocket(serverURI);
+        SharedLocationService.requestMapUpdates(serverURI, mMap);
     }
 
     @Override
@@ -57,6 +55,15 @@ public class MainMapActivity extends FragmentActivity implements
             return;
         }
 
+        customizeMap(mMap);
+        addRoutesToMap(mMap);
+
+        LatLng initialLatLng = new LatLng(32.0807898,34.7731816);
+        CameraUpdate upd = CameraUpdateFactory.newLatLngZoom(initialLatLng, 16);
+        mMap.moveCamera(upd);
+    }
+
+    private void customizeMap(final GoogleMap mMap) {
         mMap.setMapType(GoogleMap.MAP_TYPE_NONE);
         mMap.getUiSettings().setZoomControlsEnabled(true);
         mMap.getUiSettings().setZoomGesturesEnabled(true);
@@ -64,12 +71,19 @@ public class MainMapActivity extends FragmentActivity implements
         CustomMapTileProvider customMapTileProvider = new CustomMapTileProvider(getResources().getAssets());
         mMap.addTileOverlay(new TileOverlayOptions().tileProvider(customMapTileProvider));
 
-        addRoutesToMap(mMap);
-
-        LatLng initialLatLng = new LatLng(32.0807898,34.7731816);
-        CameraUpdate upd = CameraUpdateFactory.newLatLngZoom(initialLatLng, 16);
-        mMap.moveCamera(upd);
-
+        //todo: test this
+        mMap.setOnCameraChangeListener(new GoogleMap.OnCameraChangeListener() {
+            @Override
+            public void onCameraChange(CameraPosition cameraPosition) {
+                if (cameraPosition.zoom < 15){
+                    CameraUpdate fixedZoomUpdate= CameraUpdateFactory.newLatLngZoom(cameraPosition.target, 15);
+                    mMap.moveCamera(fixedZoomUpdate);
+                } else if (cameraPosition.zoom > 17){
+                    CameraUpdate fixedZoomUpdate= CameraUpdateFactory.newLatLngZoom(cameraPosition.target, 17);
+                    mMap.moveCamera(fixedZoomUpdate);
+                }
+            }
+        });
     }
 
     private void addRoutesToMap(GoogleMap mMap) {
@@ -125,12 +139,12 @@ public class MainMapActivity extends FragmentActivity implements
                     .icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_RED));
 
             userLocationMarker = mMap.addMarker(initialUserLocation);
+
+            //move camera to the user on the first location update
+            CameraUpdate upd = CameraUpdateFactory.newLatLngZoom(userLatLng, 16);
+            mMap.moveCamera(upd);
         } else {
             userLocationMarker.setPosition(userLatLng);
         }
-
-        //move camera to the user
-        CameraUpdate upd = CameraUpdateFactory.newLatLngZoom(userLatLng, 16);
-        mMap.moveCamera(upd);
     }
 }
