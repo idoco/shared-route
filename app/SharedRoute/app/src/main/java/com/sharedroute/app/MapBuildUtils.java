@@ -22,18 +22,18 @@ public class MapBuildUtils {
         CustomMapTileProvider customMapTileProvider = new CustomMapTileProvider(assetManager);
         mMap.addTileOverlay(new TileOverlayOptions().tileProvider(customMapTileProvider));
 
-        mMap.setOnCameraChangeListener(new GoogleMap.OnCameraChangeListener() {
-            @Override
-            public void onCameraChange(CameraPosition cameraPosition) {
-                if (cameraPosition.zoom < 15){
-                    CameraUpdate fixedZoomUpdate= CameraUpdateFactory.newLatLngZoom(cameraPosition.target, 15);
-                    mMap.moveCamera(fixedZoomUpdate);
-                } else if (cameraPosition.zoom > 17){
-                    CameraUpdate fixedZoomUpdate= CameraUpdateFactory.newLatLngZoom(cameraPosition.target, 17);
-                    mMap.moveCamera(fixedZoomUpdate);
-                }
-            }
-        });
+//        mMap.setOnCameraChangeListener(new GoogleMap.OnCameraChangeListener() {
+//            @Override
+//            public void onCameraChange(CameraPosition cameraPosition) {
+//                if (cameraPosition.zoom < 15){
+//                    CameraUpdate fixedZoomUpdate= CameraUpdateFactory.newLatLngZoom(cameraPosition.target, 15);
+//                    mMap.moveCamera(fixedZoomUpdate);
+//                } else if (cameraPosition.zoom > 17){
+//                    CameraUpdate fixedZoomUpdate= CameraUpdateFactory.newLatLngZoom(cameraPosition.target, 17);
+//                    mMap.moveCamera(fixedZoomUpdate);
+//                }
+//            }
+//        });
     }
 
     @SuppressWarnings("UnusedParameters")

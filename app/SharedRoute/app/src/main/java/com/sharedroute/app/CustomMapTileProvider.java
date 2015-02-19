@@ -5,6 +5,7 @@ import com.google.android.gms.maps.model.Tile;
 import com.google.android.gms.maps.model.TileProvider;
 
 import java.io.ByteArrayOutputStream;
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 
@@ -42,6 +43,9 @@ public class CustomMapTileProvider implements TileProvider {
             buffer.flush();
 
             return buffer.toByteArray();
+        } catch (FileNotFoundException e) {
+            //out of map borders, its ok;
+            return null;
         } catch (IOException e) {
             e.printStackTrace();
             return null;

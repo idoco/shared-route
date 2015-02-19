@@ -1,9 +1,8 @@
 package com.sharedroute.app;
 
 import android.location.Location;
-import android.support.v4.app.FragmentActivity;
 import android.os.Bundle;
-
+import android.support.v4.app.FragmentActivity;
 import android.util.Log;
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.api.GoogleApiClient;
@@ -14,19 +13,31 @@ import com.google.android.gms.maps.CameraUpdate;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.SupportMapFragment;
-import com.google.android.gms.maps.model.*;
+import com.google.android.gms.maps.model.BitmapDescriptorFactory;
+import com.google.android.gms.maps.model.LatLng;
+import com.google.android.gms.maps.model.Marker;
+import com.google.android.gms.maps.model.MarkerOptions;
+
+import java.util.HashMap;
+import java.util.Map;
 
 public class MainMapActivity extends FragmentActivity implements
         GoogleApiClient.ConnectionCallbacks,
         GoogleApiClient.OnConnectionFailedListener,
-        LocationListener {
+        LocationListener, MapUpdatesListener {
 
     private GoogleMap mMap;
-    private GoogleApiClient mGoogleApiClient;
+    private GoogleApiClient googleApiClient;
     private Marker userLocationMarker;
 
-    private final String TAG = getString(R.string.app_name);
-    private final String serverURI = getString(R.string.server_uri);
+    @SuppressWarnings({"UnusedDeclaration", "FieldCanBeLocal"})
+    private SharedLocationService sharedLocationService;
+
+    // accessed only from the UI tread
+    private final Map<String,Marker> sessionIdToMarkers = new HashMap<String, Marker>();
+
+    private final String TAG = "SharedRoute";
+    // private String sessionId; UUID.randomUUID().toString()
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -34,7 +45,7 @@ public class MainMapActivity extends FragmentActivity implements
         setContentView(R.layout.activity_main_map);
         buildGoogleApiClientIfNeeded();
         setUpMapIfNeeded();
-        SharedLocationService.requestMapUpdates(serverURI, mMap);
+        sharedLocationService = new SharedLocationService(this);
     }
 
     @Override
@@ -62,13 +73,13 @@ public class MainMapActivity extends FragmentActivity implements
     }
 
     protected synchronized void buildGoogleApiClientIfNeeded() {
-        if (mGoogleApiClient == null) {
-            mGoogleApiClient = new GoogleApiClient.Builder(this)
+        if (googleApiClient == null) {
+            googleApiClient = new GoogleApiClient.Builder(this)
                     .addConnectionCallbacks(this)
                     .addOnConnectionFailedListener(this)
                     .addApi(LocationServices.API)
                     .build();
-            mGoogleApiClient.connect();
+            googleApiClient.connect();
         }
     }
 
@@ -79,7 +90,7 @@ public class MainMapActivity extends FragmentActivity implements
         mLocationRequest.setInterval(1000); // Update location every second
 
         LocationServices.FusedLocationApi.requestLocationUpdates(
-                mGoogleApiClient, mLocationRequest, this);
+                googleApiClient, mLocationRequest, this);
     }
 
     @Override
@@ -112,4 +123,26 @@ public class MainMapActivity extends FragmentActivity implements
     public void onConnectionFailed(ConnectionResult connectionResult) {
         Log.i(TAG, "GoogleApiClient connection has failed");
     }
+
+    @Override
+    public void updateMapMarker(final String sessionId, final LatLng newLatLng) {
+        this.runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                final Marker marker = sessionIdToMarkers.get(sessionId);
+                if (marker != null){
+                    marker.setPosition(newLatLng);
+                } else {
+                    final MarkerOptions markerOptions = new MarkerOptions()
+                            .position(newLatLng)
+                            .draggable(false)
+                            .icon(BitmapDescriptorFactory.defaultMarker());
+
+                    Marker newMarker = mMap.addMarker(markerOptions);
+                    sessionIdToMarkers.put(sessionId,newMarker);
+                }
+            }
+        });
+    }
+
 }
