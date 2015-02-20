@@ -1,8 +1,7 @@
 package com.sharedroute.app;
 
-import android.app.Activity;
-import android.app.AlertDialog;
-import android.content.DialogInterface;
+import android.app.Application;
+import android.content.Intent;
 import android.location.Location;
 import android.os.Bundle;
 import android.support.v4.app.FragmentActivity;
@@ -31,37 +30,36 @@ public class MainMapActivity extends FragmentActivity implements
 
     private GoogleMap mMap;
     private GoogleApiClient googleApiClient;
-    private SharedLocationService sharedLocationService;
     private Marker userLocationMarker;
 
     // accessed only from the UI tread
     private final Map<String,Marker> sessionIdToMarkers = new HashMap<String, Marker>();
 
     private final String TAG = "SharedRoute";
+    private boolean shareRoute = false;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        shareRoute = false;
         setContentView(R.layout.activity_main_map);
         buildGoogleApiClientIfNeeded();
         setUpMapIfNeeded();
-        sharedLocationService = new SharedLocationService(this);
+        connectToSharedLocationServices();
     }
 
     @Override
     protected void onResume() {
         super.onResume();
+        shareRoute = false;
         setUpMapIfNeeded();
         buildGoogleApiClientIfNeeded();
     }
 
     public void iAmOnButtonClicked(View view) {
-        if (userLocationMarker != null) {
-            sharedLocationService.sendLocationUpdate(userLocationMarker.getPosition());
-        } else {
-            // for testing
-            sharedLocationService.sendLocationUpdate(new LatLng(32.0807898,34.7741816));
-        }
+        shareRoute = true;
+        Intent intent = new Intent(this, RideActivity.class);
+        startActivity(intent);
     }
 
     private void setUpMapIfNeeded() {
@@ -90,6 +88,12 @@ public class MainMapActivity extends FragmentActivity implements
                     .build();
             googleApiClient.connect();
         }
+    }
+
+    public void connectToSharedLocationServices() {
+        SharedRouteApp app = (SharedRouteApp) getApplication();
+        SharedLocationService sharedLocationService = new SharedLocationService(this);
+        app.setSharedLocationService(sharedLocationService);
     }
 
     @Override
@@ -121,6 +125,12 @@ public class MainMapActivity extends FragmentActivity implements
         } else {
             userLocationMarker.setPosition(userLatLng);
         }
+
+        if (shareRoute){
+            SharedRouteApp app = (SharedRouteApp) getApplication();
+            SharedLocationService sharedLocationService = app.getSharedLocationService();
+            sharedLocationService.sendLocationUpdate(userLatLng);
+        }
     }
 
     @Override
@@ -147,7 +157,6 @@ public class MainMapActivity extends FragmentActivity implements
                             .position(newLatLng)
                             .draggable(false)
                             .icon(BitmapDescriptorFactory.defaultMarker());
-
                     Marker newMarker = mMap.addMarker(markerOptions);
                     sessionIdToMarkers.put(sessionId,newMarker);
                 }
@@ -155,31 +164,8 @@ public class MainMapActivity extends FragmentActivity implements
         });
     }
 
-
     @Override
     public void onLocationServiceClose() {
-        final MainMapActivity mainMapActivity = this;
-        this.runOnUiThread(new Runnable() {
-            @Override
-            public void run() {
-                alertUser(mainMapActivity, "Connection to server lost", "Try to reconnect?",
-                        new DialogInterface.OnClickListener() {
-                            @Override
-                            public void onClick(DialogInterface dialog, int which) {
-                                sharedLocationService = new SharedLocationService(mainMapActivity);
-                            }
-                        });
-            }
-        });
-    }
-
-    private void alertUser(Activity activity, String title, String message,
-                           DialogInterface.OnClickListener callBack) {
-        AlertDialog.Builder builder = new AlertDialog.Builder(activity);
-        if (title != null) builder.setTitle(title);
-        builder.setMessage(message);
-        builder.setPositiveButton("OK", callBack);
-        builder.setNegativeButton("Cancel", null);
-        builder.show();
+        runOnUiThread(new ConnectionLostRunnable(this));
     }
 }
