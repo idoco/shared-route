@@ -1,41 +1,66 @@
 package sharedroute;
 
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.javadocmd.simplelatlng.LatLng;
 import org.vertx.java.core.Handler;
 import org.vertx.java.core.buffer.Buffer;
-import org.vertx.java.core.http.HttpServerRequest;
-import org.vertx.java.core.http.RouteMatcher;
 import org.vertx.java.core.http.ServerWebSocket;
 import org.vertx.java.core.logging.Logger;
 import org.vertx.java.platform.Verticle;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.io.IOException;
+import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
 
 /*
-This is a simple Java verticle which receives `ping` messages on the event bus and sends back `pong` replies
+A simple Java verticle which receives user location messages and publish them to all other users.
  */
 public class LocationVerticle extends Verticle {
 
-    private Map<String,List<LatLng>> locationHistory = new HashMap<>();
-    private Logger _log = container.logger();
+    Map<String,LatLng> sessionIdToLocation = new ConcurrentHashMap<>();
+    private Set<ServerWebSocket> sockets = new HashSet<>();
+    private ObjectMapper mapper = new ObjectMapper();
 
     public void start() {
+        final Logger _log = container.logger();
         _log.info("Websocket verticle up");
 
         vertx.createHttpServer().websocketHandler(new Handler<ServerWebSocket>() {
             public void handle(final ServerWebSocket ws) {
-                _log.info("incoming for ["+ws.path()+"]");
-
+                // add version from the start
                 if (ws.path().equals("/app")) {
+                    sockets.add(ws);
+                    _log.info("Incoming connection. current number of connections: " + sockets.size());
                     ws.dataHandler(new Handler<Buffer>() {
                         public void handle(Buffer data) {
-                            _log.info("writing back ["+data.toString()+"]");
-                            ws.writeTextFrame(data.toString()); // Echo it back
+                            try {
+                                JsonNode rootNode = mapper.readTree(data.getBytes());
+                                String sessionId = rootNode.get("sessionId").toString();
+                                String lat = rootNode.get("lat").toString();
+                                String lng = rootNode.get("lng").toString();
+                                //validate location data
+
+                                for (ServerWebSocket socket : sockets) {
+                                    if (!ws.equals(socket)) { //skip this socket
+                                        socket.writeTextFrame(data.toString());
+                                    }
+                                }
+
+                            } catch (IOException e) {
+                                _log.error("Error parsing json [" + data.toString() + "]");
+                            }
                         }
                     });
+
+                    ws.closeHandler(new Handler<Void>() {
+                        @Override
+                        public void handle(Void event) {
+                            sockets.remove(ws);
+                            _log.info("Connection closed. current number of connections: " + sockets.size());
+                        }
+                    });
+
                 } else {
                     _log.warn("rejecting by uri");
                     ws.reject();
@@ -43,4 +68,5 @@ public class LocationVerticle extends Verticle {
             }
         }).listen(8080);
     }
+
 }
