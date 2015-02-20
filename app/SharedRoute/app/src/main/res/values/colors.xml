@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="red_base">#ef4444</color>
+    <color name="red_stroke">#992F2F</color>
+    <color name="red_gradientS">#ef4444</color>
+    <color name="red_gradientE">#992F2F</color>
+    
+    <color name="blue_base">#449def</color>
+    <color name="blue_stroke">#2F6699</color>
+    <color name="blue_gradientS">#00a2e2</color>
+    <color name="blue_gradientE">#0767a4</color>
+    
+    <color name="def_blue_base">#449def</color>
+    <color name="def_blue_stroke">#2F6699</color>
+    <color name="def_blue_gradientS">#449def</color>
+    <color name="def_blue_gradientE">#2F6699</color>   
+    
+    <color name="menu_text_color">#FFFFFF</color>
+    <color name="menu_shadow_color">#000000</color>
+    
+</resources>

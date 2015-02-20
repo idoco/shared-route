@@ -1,9 +1,13 @@
 package com.sharedroute.app;
 
+import android.app.Activity;
+import android.app.AlertDialog;
+import android.content.DialogInterface;
 import android.location.Location;
 import android.os.Bundle;
 import android.support.v4.app.FragmentActivity;
 import android.util.Log;
+import android.view.View;
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.location.LocationListener;
@@ -22,22 +26,18 @@ import java.util.HashMap;
 import java.util.Map;
 
 public class MainMapActivity extends FragmentActivity implements
-        GoogleApiClient.ConnectionCallbacks,
-        GoogleApiClient.OnConnectionFailedListener,
+        GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener,
         LocationListener, MapUpdatesListener {
 
     private GoogleMap mMap;
     private GoogleApiClient googleApiClient;
-    private Marker userLocationMarker;
-
-    @SuppressWarnings({"UnusedDeclaration", "FieldCanBeLocal"})
     private SharedLocationService sharedLocationService;
+    private Marker userLocationMarker;
 
     // accessed only from the UI tread
     private final Map<String,Marker> sessionIdToMarkers = new HashMap<String, Marker>();
 
     private final String TAG = "SharedRoute";
-    // private String sessionId; UUID.randomUUID().toString()
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -53,6 +53,15 @@ public class MainMapActivity extends FragmentActivity implements
         super.onResume();
         setUpMapIfNeeded();
         buildGoogleApiClientIfNeeded();
+    }
+
+    public void iAmOnButtonClicked(View view) {
+        if (userLocationMarker != null) {
+            sharedLocationService.sendLocationUpdate(userLocationMarker.getPosition());
+        } else {
+            // for testing
+            sharedLocationService.sendLocationUpdate(new LatLng(32.0807898,34.7741816));
+        }
     }
 
     private void setUpMapIfNeeded() {
@@ -124,6 +133,7 @@ public class MainMapActivity extends FragmentActivity implements
         Log.i(TAG, "GoogleApiClient connection has failed");
     }
 
+    //todo split and move
     @Override
     public void updateMapMarker(final String sessionId, final LatLng newLatLng) {
         this.runOnUiThread(new Runnable() {
@@ -145,4 +155,31 @@ public class MainMapActivity extends FragmentActivity implements
         });
     }
 
+
+    @Override
+    public void onLocationServiceClose() {
+        final MainMapActivity mainMapActivity = this;
+        this.runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                alertUser(mainMapActivity, "Connection to server lost", "Try to reconnect?",
+                        new DialogInterface.OnClickListener() {
+                            @Override
+                            public void onClick(DialogInterface dialog, int which) {
+                                sharedLocationService = new SharedLocationService(mainMapActivity);
+                            }
+                        });
+            }
+        });
+    }
+
+    private void alertUser(Activity activity, String title, String message,
+                           DialogInterface.OnClickListener callBack) {
+        AlertDialog.Builder builder = new AlertDialog.Builder(activity);
+        if (title != null) builder.setTitle(title);
+        builder.setMessage(message);
+        builder.setPositiveButton("OK", callBack);
+        builder.setNegativeButton("Cancel", null);
+        builder.show();
+    }
 }

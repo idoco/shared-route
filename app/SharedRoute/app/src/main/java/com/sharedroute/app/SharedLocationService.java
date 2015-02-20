@@ -6,10 +6,12 @@ import android.util.Log;
 import com.google.android.gms.maps.model.LatLng;
 import org.java_websocket.client.WebSocketClient;
 import org.java_websocket.handshake.ServerHandshake;
+import org.json.simple.JSONObject;
 
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.Map;
+import java.util.UUID;
 
 /**
  * Created by cohid01 on 13/02/2015.
@@ -21,6 +23,7 @@ public class SharedLocationService {
     private final WebSocketClient mWebSocketClient;
 
     private final static String SERVER_URI = "ws://10.0.2.2:8080/app";
+    private final String sessionId = UUID.randomUUID().toString();
     private MapUpdatesListener mapUpdatesListener;
 
     public SharedLocationService(MapUpdatesListener mapUpdatesListener) {
@@ -43,22 +46,18 @@ public class SharedLocationService {
             @Override
             public void onOpen(ServerHandshake serverHandshake) {
                 Log.i("Websocket", "Opened");
-                this.send("Hello from " + Build.MANUFACTURER + " " + Build.MODEL);
             }
 
             @Override
             public void onMessage(final String s) {
-                try {
-                    Map<String, LatLng> locationUpdatesMap = messageParser.parseLocationUpdateJson(s);
-                    updateLocationsOnMap(locationUpdatesMap);
-                } catch (Exception e) {
-                    Log.e("Websocket","message is "+ s ,e);
-                }
-                Log.i("Websocket","message is "+ s);
+                Log.i("Websocket","Incoming message "+ s);
+                Map<String, LatLng> locationUpdatesMap = messageParser.parseLocationUpdateJson(s);
+                updateLocationsOnMap(locationUpdatesMap);
             }
             @Override
             public void onClose(int i, String s, boolean b) {
                 Log.i("Websocket", "Closed " + s);
+                mapUpdatesListener.onLocationServiceClose();
             }
 
             @Override
@@ -77,8 +76,12 @@ public class SharedLocationService {
         }
     }
 
-    @SuppressWarnings("UnusedDeclaration")
-    public void sendLocationUpdate(Location location){
-        mWebSocketClient.send(location.toString());
+    @SuppressWarnings("unchecked")
+    public void sendLocationUpdate(LatLng latLng){
+        JSONObject jsonLocation = new JSONObject();
+        jsonLocation.put("sessionId", sessionId);
+        jsonLocation.put("lat", latLng.latitude);
+        jsonLocation.put("lng", latLng.longitude);
+        mWebSocketClient.send(jsonLocation.toString());
     }
 }

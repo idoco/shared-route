@@ -7,4 +7,5 @@ import com.google.android.gms.maps.model.LatLng;
  */
 public interface MapUpdatesListener {
     void updateMapMarker(String sessionId, LatLng newLatLng);
+    void onLocationServiceClose();
 }

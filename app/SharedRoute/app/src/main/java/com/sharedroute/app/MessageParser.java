@@ -28,15 +28,12 @@ public class MessageParser {
         Map<String,LatLng> locationUpdatesMap = new HashMap<String, LatLng>();
         try {
             Object message = parser.parse(jsonString);
-            JSONObject locationUpdatesJson = (JSONObject) message;
-            for (Object key : locationUpdatesJson.keySet()) {
-                String keyString = key.toString();
-                Object locationJson = locationUpdatesJson.get(keyString);
-                String lat = ((JSONObject) locationJson).get("lat").toString();
-                String lng = ((JSONObject) locationJson).get("lng").toString();
-                LatLng latLng = new LatLng(Double.parseDouble(lat), Double.parseDouble(lng));
-                locationUpdatesMap.put(keyString, latLng);
-            }
+            JSONObject locationUpdateJson = (JSONObject) message;
+            String sessionId = locationUpdateJson.get("sessionId").toString();
+            String lat = locationUpdateJson.get("lat").toString();
+            String lng = locationUpdateJson.get("lng").toString();
+            LatLng latLng = new LatLng(Double.parseDouble(lat), Double.parseDouble(lng));
+            locationUpdatesMap.put(sessionId, latLng);
         } catch (ParseException e) {
             Log.e("JSONParser", "Error while parsing message " + jsonString, e);
         }

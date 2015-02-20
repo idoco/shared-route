@@ -5,4 +5,27 @@
         <!-- Customize your theme here. -->
     </style>
 
+    <style name="menu">
+        <item name="android:layout_width">fill_parent</item>
+        <item name="android:layout_height">55dip</item>
+        <item name="android:textColor">@color/menu_text_color</item>
+        <item name="android:gravity">center</item>
+        <item name="android:layout_marginLeft">45dip</item>
+        <item name="android:layout_marginRight">45dip</item>
+        <item name="android:textSize">30sp</item>
+        <item name="android:textStyle">bold</item>
+        <item name="android:shadowColor">@color/menu_shadow_color</item>
+        <item name="android:shadowDx">1</item>
+        <item name="android:shadowDy">1</item>
+        <item name="android:shadowRadius">4</item>
+    </style>
+
+    <style name="main_menu_btnTop" parent="menu">
+        <item name="android:layout_marginTop">30dip</item>
+    </style>
+
+    <style name="main_menu_btnNormal" parent="menu">
+        <item name="android:layout_marginTop">12dip</item>
+    </style>
+
 </resources>
