@@ -20,7 +20,7 @@ class ConnectionLostRunnable implements Runnable {
                 new DialogInterface.OnClickListener() {
                     @Override
                     public void onClick(DialogInterface dialog, int which) {
-                        mainMapActivity.connectToSharedLocationServices();
+                        mainMapActivity.connectToSharedLocationServicesIfNeeded();
                     }
                 });
     }

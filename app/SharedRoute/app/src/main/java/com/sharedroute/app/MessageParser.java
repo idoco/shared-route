@@ -35,9 +35,18 @@ public class MessageParser {
             LatLng latLng = new LatLng(Double.parseDouble(lat), Double.parseDouble(lng));
             locationUpdatesMap.put(sessionId, latLng);
         } catch (ParseException e) {
-            Log.e("JSONParser", "Error while parsing message " + jsonString, e);
+            Log.e("SharedRoute", "JSONParser error while parsing message " + jsonString, e);
         }
         return locationUpdatesMap;
+    }
+
+
+    public JSONObject createLocationJson(LatLng latLng, String sessionId) {
+        JSONObject jsonLocation = new JSONObject();
+        jsonLocation.put("sessionId", sessionId);
+        jsonLocation.put("lat", latLng.latitude);
+        jsonLocation.put("lng", latLng.longitude);
+        return jsonLocation;
     }
 
 }

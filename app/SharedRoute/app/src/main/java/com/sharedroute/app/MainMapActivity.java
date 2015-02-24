@@ -1,9 +1,9 @@
 package com.sharedroute.app;
 
-import android.app.Application;
 import android.content.Intent;
 import android.location.Location;
 import android.os.Bundle;
+import android.provider.Settings;
 import android.support.v4.app.FragmentActivity;
 import android.util.Log;
 import android.view.View;
@@ -37,15 +37,18 @@ public class MainMapActivity extends FragmentActivity implements
 
     private final String TAG = "SharedRoute";
     private boolean shareRoute = false;
+    private String uniqueId;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        uniqueId = Settings.Secure.getString(getContentResolver(),
+                Settings.Secure.ANDROID_ID);
         shareRoute = false;
         setContentView(R.layout.activity_main_map);
-        buildGoogleApiClientIfNeeded();
         setUpMapIfNeeded();
-        connectToSharedLocationServices();
+        buildGoogleApiClientIfNeeded();
+        connectToSharedLocationServicesIfNeeded();
     }
 
     @Override
@@ -54,10 +57,14 @@ public class MainMapActivity extends FragmentActivity implements
         shareRoute = false;
         setUpMapIfNeeded();
         buildGoogleApiClientIfNeeded();
+        connectToSharedLocationServicesIfNeeded();
     }
 
     public void iAmOnButtonClicked(View view) {
         shareRoute = true;
+        if (userLocationMarker != null && userLocationMarker.getPosition() != null) {
+            shareLocation(userLocationMarker.getPosition());
+        }
         Intent intent = new Intent(this, RideActivity.class);
         startActivity(intent);
     }
@@ -90,10 +97,15 @@ public class MainMapActivity extends FragmentActivity implements
         }
     }
 
-    public void connectToSharedLocationServices() {
+    public void connectToSharedLocationServicesIfNeeded() {
         SharedRouteApp app = (SharedRouteApp) getApplication();
-        SharedLocationService sharedLocationService = new SharedLocationService(this);
-        app.setSharedLocationService(sharedLocationService);
+        SharedLocationService sharedLocationService = app.getSharedLocationService();
+        if (sharedLocationService == null || sharedLocationService.isClosed()) { //should I reuse the old connection?
+            sharedLocationService = new SharedLocationService.Builder(this)
+                    .setSessionId(uniqueId)
+                    .build();
+            app.setSharedLocationService(sharedLocationService);
+        }
     }
 
     @Override
@@ -127,10 +139,14 @@ public class MainMapActivity extends FragmentActivity implements
         }
 
         if (shareRoute){
-            SharedRouteApp app = (SharedRouteApp) getApplication();
-            SharedLocationService sharedLocationService = app.getSharedLocationService();
-            sharedLocationService.sendLocationUpdate(userLatLng);
+            shareLocation(userLatLng);
         }
+    }
+
+    private void shareLocation(LatLng userLatLng) {
+        SharedRouteApp app = (SharedRouteApp) getApplication();
+        SharedLocationService sharedLocationService = app.getSharedLocationService();
+        sharedLocationService.sendLocationUpdate(userLatLng);
     }
 
     @Override
@@ -156,7 +172,7 @@ public class MainMapActivity extends FragmentActivity implements
                     final MarkerOptions markerOptions = new MarkerOptions()
                             .position(newLatLng)
                             .draggable(false)
-                            .icon(BitmapDescriptorFactory.defaultMarker());
+                            .icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_YELLOW));
                     Marker newMarker = mMap.addMarker(markerOptions);
                     sessionIdToMarkers.put(sessionId,newMarker);
                 }

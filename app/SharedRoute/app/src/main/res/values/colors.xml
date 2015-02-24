@@ -2,5 +2,8 @@
 <resources>
     <color name="cab_yellow">#F6D700</color>
     <color name="cab_red">#BD1128</color>
+
+    <color name="menu_text_color">#FFFFFF</color>
+    <color name="menu_shadow_color">#000000</color>
     
 </resources>

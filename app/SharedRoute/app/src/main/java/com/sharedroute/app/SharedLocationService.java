@@ -1,7 +1,5 @@
 package com.sharedroute.app;
 
-import android.location.Location;
-import android.os.Build;
 import android.util.Log;
 import com.google.android.gms.maps.model.LatLng;
 import org.java_websocket.client.WebSocketClient;
@@ -22,12 +20,13 @@ public class SharedLocationService {
     private final MessageParser messageParser;
     private final WebSocketClient mWebSocketClient;
 
-    private final static String SERVER_URI = "ws://10.0.2.2:8080/app";
-    private final String sessionId = UUID.randomUUID().toString();
+    private final static String SERVER_URI = "ws://sharedroute.cloudapp.net/app";
+    private final String sessionId;
     private MapUpdatesListener mapUpdatesListener;
 
-    public SharedLocationService(MapUpdatesListener mapUpdatesListener) {
+    public SharedLocationService(MapUpdatesListener mapUpdatesListener, String sessionId) {
         this.mapUpdatesListener = mapUpdatesListener;
+        this.sessionId = sessionId;
         this.mWebSocketClient = buildWebSocketClient();
         this.messageParser = new MessageParser();
     }
@@ -45,24 +44,24 @@ public class SharedLocationService {
         WebSocketClient mWebSocketClient = new WebSocketClient(uri) {
             @Override
             public void onOpen(ServerHandshake serverHandshake) {
-                Log.i("Websocket", "Opened");
+                Log.i("SharedRoute", "Websocket Opened");
             }
 
             @Override
             public void onMessage(final String s) {
-                Log.i("Websocket","Incoming message "+ s);
+                Log.i("SharedRoute","Websocket incoming message "+ s);
                 Map<String, LatLng> locationUpdatesMap = messageParser.parseLocationUpdateJson(s);
                 updateLocationsOnMap(locationUpdatesMap);
             }
             @Override
             public void onClose(int i, String s, boolean b) {
-                Log.i("Websocket", "Closed " + s);
+                Log.i("SharedRoute", "Websocket Closed " + s);
                 mapUpdatesListener.onLocationServiceClose();
             }
 
             @Override
             public void onError(Exception e) {
-                Log.i("Websocket", "Error " + e.getMessage());
+                Log.i("SharedRoute", "Websocket Error " + e.getMessage());
             }
         };
         mWebSocketClient.connect();
@@ -78,10 +77,29 @@ public class SharedLocationService {
 
     @SuppressWarnings("unchecked")
     public void sendLocationUpdate(LatLng latLng){
-        JSONObject jsonLocation = new JSONObject();
-        jsonLocation.put("sessionId", sessionId);
-        jsonLocation.put("lat", latLng.latitude);
-        jsonLocation.put("lng", latLng.longitude);
+        JSONObject jsonLocation = messageParser.createLocationJson(latLng, sessionId);
         mWebSocketClient.send(jsonLocation.toString());
+    }
+
+    public boolean isClosed() {
+        return mWebSocketClient.getConnection().isClosed();
+    }
+
+    public static final class Builder {
+        private MapUpdatesListener mapUpdatesListener;
+        private String sessionId;
+
+        public Builder(MapUpdatesListener mapUpdatesListener) {
+            this.mapUpdatesListener = mapUpdatesListener;
+        }
+
+        public Builder setSessionId(String sessionId) {
+            this.sessionId = sessionId;
+            return this;
+        }
+
+        public SharedLocationService build() {
+            return new SharedLocationService(mapUpdatesListener, sessionId);
+        }
     }
 }
