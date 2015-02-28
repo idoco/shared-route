@@ -20,46 +20,57 @@ import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
+import com.sharedroute.app.tasks.AddOrUpdateMarkerRunnable;
+import com.sharedroute.app.tasks.ClearOldMarkersRunnable;
+import com.sharedroute.app.tasks.ConnectionLostRunnable;
 
-import java.util.HashMap;
 import java.util.Map;
+import java.util.Timer;
+import java.util.concurrent.ConcurrentHashMap;
 
 public class MainMapActivity extends FragmentActivity implements
         GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener,
         LocationListener, MapUpdatesListener {
 
-    public static final int ACCURACY_THRESHOLD = 25;
-
-    private GoogleMap mMap;
+    private GoogleMap mainMap;
     private GoogleApiClient googleApiClient;
     private Marker userLocationMarker;
-
-    // accessed only from the UI tread
-    private final Map<String,Marker> sessionIdToMarkers = new HashMap<String, Marker>();
+    private final Map<String, MarkerWrapper> sessionIdToMarkers = new ConcurrentHashMap<String, MarkerWrapper>();
 
     private final String TAG = "SharedRoute";
     private boolean shareRoute = false;
     private String uniqueId;
+    private Timer timer;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         uniqueId = Settings.Secure.getString(getContentResolver(),
                 Settings.Secure.ANDROID_ID);
-        shareRoute = false;
         setContentView(R.layout.activity_main_map);
-        setUpMapIfNeeded();
-        buildGoogleApiClientIfNeeded();
-        connectToSharedLocationServicesIfNeeded();
+        init();
     }
 
     @Override
     protected void onResume() {
         super.onResume();
+        init();
+    }
+
+    private void init() {
         shareRoute = false;
         setUpMapIfNeeded();
         buildGoogleApiClientIfNeeded();
         connectToSharedLocationServicesIfNeeded();
+        startTimer();
+    }
+
+    private void startTimer() {
+        if (timer != null){
+            timer.cancel();
+        }
+        timer = new Timer();
+        timer.schedule(new ClearOldMarkersRunnable(this), 60 * 1000, 60 * 1000);
     }
 
     public void iAmOnButtonClicked(View view) {
@@ -72,19 +83,19 @@ public class MainMapActivity extends FragmentActivity implements
     }
 
     private void setUpMapIfNeeded() {
-        if (mMap != null) {
+        if (mainMap != null) {
             return;
         }
-        mMap = ((SupportMapFragment) getSupportFragmentManager().findFragmentById(R.id.map)).getMap();
-        if (mMap == null) {
+        mainMap = ((SupportMapFragment) getSupportFragmentManager().findFragmentById(R.id.map)).getMap();
+        if (mainMap == null) {
             return;
         }
 
-        MapBuildUtils.customizeMap(mMap, getResources().getAssets());
+        MapBuildUtils.customizeMap(mainMap, getResources().getAssets());
 
         LatLng initialLatLng = new LatLng(32.0807898,34.7731816);
         CameraUpdate upd = CameraUpdateFactory.newLatLngZoom(initialLatLng, 16);
-        mMap.moveCamera(upd);
+        mainMap.moveCamera(upd);
     }
 
     protected synchronized void buildGoogleApiClientIfNeeded() {
@@ -113,7 +124,7 @@ public class MainMapActivity extends FragmentActivity implements
     public void onConnected(Bundle bundle) {
         LocationRequest mLocationRequest = LocationRequest.create();
         mLocationRequest.setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY);
-        mLocationRequest.setInterval(1000); // Update location every second
+        mLocationRequest.setInterval(5000); // Update location every 5 seconds
 
         LocationServices.FusedLocationApi.requestLocationUpdates(
                 googleApiClient, mLocationRequest, this);
@@ -130,17 +141,16 @@ public class MainMapActivity extends FragmentActivity implements
                     .draggable(false)
                     .icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_RED));
 
-            userLocationMarker = mMap.addMarker(initialUserLocation);
+            userLocationMarker = mainMap.addMarker(initialUserLocation);
 
             //move camera to the user on the first location update
             CameraUpdate upd = CameraUpdateFactory.newLatLngZoom(userLatLng, 16);
-            mMap.moveCamera(upd);
+            mainMap.moveCamera(upd);
         } else {
             userLocationMarker.setPosition(userLatLng);
         }
 
-        boolean locationAccurate = location.hasAccuracy() && location.getAccuracy() < ACCURACY_THRESHOLD;
-        if (shareRoute && locationAccurate){
+        if (shareRoute){
             shareLocation(userLatLng);
         }
     }
@@ -161,29 +171,21 @@ public class MainMapActivity extends FragmentActivity implements
         Log.i(TAG, "GoogleApiClient connection has failed");
     }
 
-    //todo split and move
     @Override
-    public void updateMapMarker(final String sessionId, final LatLng newLatLng) {
-        this.runOnUiThread(new Runnable() {
-            @Override
-            public void run() {
-                final Marker marker = sessionIdToMarkers.get(sessionId);
-                if (marker != null){
-                    marker.setPosition(newLatLng);
-                } else {
-                    final MarkerOptions markerOptions = new MarkerOptions()
-                            .position(newLatLng)
-                            .draggable(false)
-                            .icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_YELLOW));
-                    Marker newMarker = mMap.addMarker(markerOptions);
-                    sessionIdToMarkers.put(sessionId,newMarker);
-                }
-            }
-        });
+    public void addOrUpdateMapMarker(final String sessionId, final LatLng newLatLng) {
+        this.runOnUiThread(new AddOrUpdateMarkerRunnable(this, sessionId, newLatLng));
     }
 
     @Override
     public void onLocationServiceClose() {
         runOnUiThread(new ConnectionLostRunnable(this));
+    }
+
+    public Map<String, MarkerWrapper> getSessionIdToMarkers() {
+        return sessionIdToMarkers;
+    }
+
+    public GoogleMap getMainMap() {
+        return mainMap;
     }
 }

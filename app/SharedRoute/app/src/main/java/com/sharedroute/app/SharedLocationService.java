@@ -9,7 +9,6 @@ import org.json.simple.JSONObject;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.Map;
-import java.util.UUID;
 
 /**
  * Created by cohid01 on 13/02/2015.
@@ -21,6 +20,8 @@ public class SharedLocationService {
     private final WebSocketClient mWebSocketClient;
 
     private final static String SERVER_URI = "ws://sharedroute.cloudapp.net/app";
+//    private final static String SERVER_URI = "ws://10.0.2.2:8080/app";
+
     private final String sessionId;
     private MapUpdatesListener mapUpdatesListener;
 
@@ -71,7 +72,7 @@ public class SharedLocationService {
     private void updateLocationsOnMap(Map<String, LatLng> locationUpdatesMap) {
         for (String sessionId : locationUpdatesMap.keySet()) {
             LatLng newLatLng = locationUpdatesMap.get(sessionId);
-            mapUpdatesListener.updateMapMarker(sessionId, newLatLng);
+            mapUpdatesListener.addOrUpdateMapMarker(sessionId, newLatLng);
         }
     }
 

@@ -1,13 +1,14 @@
-package com.sharedroute.app;
+package com.sharedroute.app.tasks;
 
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.content.DialogInterface;
+import com.sharedroute.app.MainMapActivity;
 
 /**
 * Created by cohid01 on 20/02/2015.
 */
-class ConnectionLostRunnable implements Runnable {
+public class ConnectionLostRunnable implements Runnable {
     private final MainMapActivity mainMapActivity;
 
     public ConnectionLostRunnable(MainMapActivity mainMapActivity) {
