@@ -28,6 +28,8 @@ public class MainMapActivity extends FragmentActivity implements
         GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener,
         LocationListener, MapUpdatesListener {
 
+    public static final int ACCURACY_THRESHOLD = 25;
+
     private GoogleMap mMap;
     private GoogleApiClient googleApiClient;
     private Marker userLocationMarker;
@@ -79,7 +81,6 @@ public class MainMapActivity extends FragmentActivity implements
         }
 
         MapBuildUtils.customizeMap(mMap, getResources().getAssets());
-        MapBuildUtils.addRoutesToMap(mMap);
 
         LatLng initialLatLng = new LatLng(32.0807898,34.7731816);
         CameraUpdate upd = CameraUpdateFactory.newLatLngZoom(initialLatLng, 16);
@@ -138,7 +139,8 @@ public class MainMapActivity extends FragmentActivity implements
             userLocationMarker.setPosition(userLatLng);
         }
 
-        if (shareRoute){
+        boolean locationAccurate = location.hasAccuracy() && location.getAccuracy() < ACCURACY_THRESHOLD;
+        if (shareRoute && locationAccurate){
             shareLocation(userLatLng);
         }
     }
