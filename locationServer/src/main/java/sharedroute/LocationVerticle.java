@@ -2,6 +2,7 @@ package sharedroute;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.javadocmd.simplelatlng.LatLng;
 import org.vertx.java.core.Handler;
 import org.vertx.java.core.buffer.Buffer;
 import org.vertx.java.core.http.ServerWebSocket;
@@ -10,6 +11,7 @@ import org.vertx.java.platform.Verticle;
 
 import java.io.IOException;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 
 /*
@@ -17,12 +19,16 @@ A simple Java verticle which receives user location messages and publish them to
  */
 public class LocationVerticle extends Verticle {
 
+    public static final int ACCURACY_IN_METERS = 50;
+
     private Set<ServerWebSocket> sockets = new HashSet<>();
     private ObjectMapper mapper = new ObjectMapper();
 
     public void start() {
         final Logger _log = container.logger();
         _log.info("Websocket verticle up");
+
+        final List<LatLng> route = MapUtils.parseRouteFromCsv("route_4.csv");
 
         vertx.createHttpServer().websocketHandler(new Handler<ServerWebSocket>() {
             public void handle(final ServerWebSocket ws) {
@@ -35,14 +41,17 @@ public class LocationVerticle extends Verticle {
                             _log.debug("Incoming location message [" + data.toString() + "]");
                             try {
                                 JsonNode rootNode = mapper.readTree(data.getBytes());
-                                String sessionId = rootNode.get("sessionId").toString();
+                                // String sessionId = rootNode.get("sessionId").toString();
                                 String lat = rootNode.get("lat").toString();
                                 String lng = rootNode.get("lng").toString();
-                                //validate location data
+                                LatLng newPoint = new LatLng(Double.parseDouble(lat), Double.parseDouble(lng));
 
-                                for (ServerWebSocket socket : sockets) {
-                                    if (!ws.equals(socket)) { //skip this socket
-                                        socket.writeTextFrame(data.toString());
+                                // Consider braking this into different handlers
+                                if (MapUtils.findPointOnRoute(newPoint, route, ACCURACY_IN_METERS) != null) {
+                                    for (ServerWebSocket socket : sockets) {
+                                        if (!ws.equals(socket)) { //skip this socket
+                                            socket.writeBinaryFrame(data);
+                                        }
                                     }
                                 }
 
@@ -60,6 +69,15 @@ public class LocationVerticle extends Verticle {
                         }
                     });
 
+                    ws.exceptionHandler(new Handler<Throwable>() {
+                        @Override
+                        public void handle(Throwable event) {
+                            _log.error("Connection error",event);
+                            sockets.remove(ws);
+                            _log.info("Connection closed. current number of connections: " + sockets.size());
+                        }
+                    });
+
                 } else {
                     _log.warn("rejecting by uri");
                     ws.reject();
@@ -67,5 +85,4 @@ public class LocationVerticle extends Verticle {
             }
         }).listen(8080);
     }
-
 }
