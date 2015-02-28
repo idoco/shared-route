@@ -2,6 +2,8 @@ package com.sharedroute.app;
 
 import android.content.res.AssetManager;
 import android.graphics.Color;
+import android.util.Log;
+import com.cocoahero.android.geojson.*;
 import com.google.android.gms.maps.CameraUpdate;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
@@ -9,11 +11,10 @@ import com.google.android.gms.maps.model.CameraPosition;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.PolylineOptions;
 import com.google.android.gms.maps.model.TileOverlayOptions;
+import org.json.JSONException;
+import org.json.JSONObject;
 
-import java.io.BufferedReader;
-import java.io.IOException;
 import java.io.InputStream;
-import java.io.InputStreamReader;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -26,6 +27,7 @@ public class MapBuildUtils {
 
     public static final int MIN_ZOOM = 14;
     public static final int MAX_ZOOM = 17;
+    public static final String ROUTE_DATA_GEOJSON = "route_data/map.geojson";
 
     public static void customizeMap(final GoogleMap mMap, AssetManager assetManager) {
         mMap.setMapType(GoogleMap.MAP_TYPE_NONE);
@@ -48,31 +50,47 @@ public class MapBuildUtils {
             }
         });
 
-        List<LatLng> route4 = parseRouteFromCsv("route_4.csv",assetManager);
-        addRouteToMap(mMap, route4, Color.BLUE);
+        addRouteToMap(mMap, assetManager);
     }
 
-    private static List<LatLng> parseRouteFromCsv(String fileName, AssetManager assetManager) {
-        List<LatLng> routeData = new ArrayList<LatLng>(100);
+    private static void addRouteToMap(GoogleMap mMap, AssetManager assetManager) {
         try {
-            InputStream in = assetManager.open("route_data/" + fileName);
-            BufferedReader reader = new BufferedReader(new InputStreamReader(in));
-            String line;
-            while ((line = reader.readLine()) != null) {
-                String[] RowData = line.split(",");
-                String lat = RowData[0];
-                String lng = RowData[1];
-                LatLng latLng = new LatLng(Double.parseDouble(lat), Double.parseDouble(lng));
-                routeData.add(latLng);
+            InputStream in = assetManager.open(ROUTE_DATA_GEOJSON);
+            GeoJSONObject geoJSON = GeoJSON.parse(in);
+            String type = geoJSON.getType();
+            if (type.equalsIgnoreCase("FeatureCollection")){
+                FeatureCollection featureCollection = (FeatureCollection) geoJSON;
+                for (Feature feature : featureCollection.getFeatures()) {
+                    addFeatureToMap(mMap, feature);
+                }
+            } else {
+                Log.w("SharedRoute", "Unexpected geoJson structure");
             }
-        } catch (IOException e) {
-            e.printStackTrace();
         }
-        return routeData;
+        catch (Exception e) {
+            Log.e("SharedRoute", "Failed to parse map geoJson");
+        }
+    }
+
+    private static void addFeatureToMap(GoogleMap mMap, Feature feature) throws JSONException {
+        Geometry geometry = feature.getGeometry();
+        if (geometry.getType().equalsIgnoreCase("LineString")) {
+            LineString lineString = (LineString) geometry;
+            List<LatLng> line = new ArrayList<LatLng>(100);
+            for (Position position : lineString.getPositions()) {
+                line.add(new LatLng(position.getLatitude(), position.getLongitude()));
+            }
+            JSONObject properties = feature.getProperties();
+            String colorHex = properties.getString("stroke");
+            int colorInt = Color.parseColor(colorHex);
+            addLineToMap(mMap, line, colorInt);
+        } else {
+            Log.w("SharedRoute", "Unrecognized map geometry");
+        }
     }
 
     @SuppressWarnings("UnusedParameters")
-    public static void addRouteToMap(GoogleMap mMap, List<LatLng> route4, int color) {
+    public static void addLineToMap(GoogleMap mMap, List<LatLng> route4, int color) {
         PolylineOptions polylineOptions = new PolylineOptions()
                 .color(color)
                 .zIndex(1)
