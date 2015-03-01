@@ -9,10 +9,39 @@
     android:background="@color/cab_yellow"
     tools:context="com.sharedroute.app.RideActivity">
 
-    <TextView
-        android:text="@string/sharing_route"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:gravity="center_horizontal|center_vertical"/>
+    <FrameLayout
+            android:id="@+id/fram_map"
+            android:layout_width="fill_parent"
+            android:layout_height="fill_parent" >
+
+        <TextView
+                android:text="@string/sharing_route"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:gravity="center_horizontal|center_vertical"/>
+
+        <Button
+                android:id="@+id/main_button"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center_horizontal|bottom"
+                android:layout_marginBottom="26dp"
+                android:background="@drawable/orange_menu_btn"
+                style="@style/main_menu_btnNormal"
+                android:text="I'm Off"
+                android:onClick="foo"/>
+
+        <ImageButton
+                android:id="@+id/whatsapp"
+                android:layout_width="50dp"
+                android:layout_height="50dp"
+                android:layout_gravity="left|bottom"
+                android:layout_marginBottom="24dp"
+                android:src="@drawable/whatsapp"
+                android:onClick="goo"
+                android:background="@null"
+                android:contentDescription="Update friends using Whatsapp"/>
+
+    </FrameLayout>
 
 </RelativeLayout>

@@ -7,6 +7,7 @@ import android.provider.Settings;
 import android.support.v4.app.FragmentActivity;
 import android.util.Log;
 import android.view.View;
+import android.widget.Button;
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.location.LocationListener;
@@ -33,6 +34,7 @@ public class MainMapActivity extends FragmentActivity implements
         LocationListener, MapUpdatesListener {
 
     private GoogleMap mainMap;
+    private Button mainButton;
     private GoogleApiClient googleApiClient;
     private Marker userLocationMarker;
     private final Map<String, MarkerWrapper> sessionIdToMarkers = new ConcurrentHashMap<String, MarkerWrapper>();
