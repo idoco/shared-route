@@ -18,7 +18,7 @@ android {
     buildToolsVersion '21.1.2'
 
     defaultConfig {
-        minSdkVersion 9
+        minSdkVersion 14
         targetSdkVersion 19
         versionCode 1
         versionName "1.0"
@@ -38,4 +38,5 @@ dependencies {
     compile 'org.java-websocket:Java-WebSocket:1.3.0'
     compile 'com.googlecode.json-simple:json-simple:1.1'
     compile 'com.cocoahero.android:geojson:1.0.+@aar'
+    compile 'com.getbase:floatingactionbutton:1.8.0'
 }

@@ -31,7 +31,7 @@ public class MapBuildUtils {
 
     public static void customizeMap(final GoogleMap mMap, AssetManager assetManager) {
         mMap.setMapType(GoogleMap.MAP_TYPE_NONE);
-        mMap.getUiSettings().setZoomControlsEnabled(true);
+        mMap.getUiSettings().setZoomControlsEnabled(false);
         mMap.getUiSettings().setZoomGesturesEnabled(true);
 
         CustomMapTileProvider customMapTileProvider = new CustomMapTileProvider(assetManager);

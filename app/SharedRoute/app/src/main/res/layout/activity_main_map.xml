@@ -1,4 +1,5 @@
 <FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+             xmlns:fab="http://schemas.android.com/apk/res-auto"
              android:layout_width="fill_parent"
              android:layout_height="fill_parent" >
 
@@ -12,22 +13,34 @@
               tools:context="com.sharedroute.app.MainMapActivity"
               map:mapType="normal"/>
 
-    <FrameLayout
-            android:id="@+id/fram_map"
-            android:layout_width="fill_parent"
-            android:layout_height="fill_parent" >
+    <com.getbase.floatingactionbutton.FloatingActionButton
+            android:id="@+id/start_button"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="right|bottom"
+            fab:fab_icon="@drawable/ic_start_w"
+            fab:fab_colorNormal="#4CAF50"
+            fab:fab_colorPressed="#2E7D32"
+            android:onClick="iAmOnButtonClicked"
+            android:layout_marginRight="16dp"
+            android:layout_marginBottom="16dp"/>
 
-        <Button
-                android:id="@+id/main_button"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_gravity="center_horizontal|bottom"
-                android:layout_marginBottom="26dp"
-                android:background="@drawable/green_menu_btn"
-                style="@style/main_menu_btnNormal"
-                android:text="I'm On!"
-                android:onClick="iAmOnButtonClicked"/>
+    <!--<FrameLayout-->
+    <!--android:id="@+id/fram_map"-->
+    <!--android:layout_width="fill_parent"-->
+    <!--android:layout_height="fill_parent" >-->
 
-    </FrameLayout>
+    <!--<Button-->
+    <!--android:id="@+id/main_button"-->
+    <!--android:layout_width="wrap_content"-->
+    <!--android:layout_height="wrap_content"-->
+    <!--android:layout_gravity="center_horizontal|bottom"-->
+    <!--android:layout_marginBottom="26dp"-->
+    <!--android:background="@drawable/green_menu_btn"-->
+    <!--style="@style/main_menu_btnNormal"-->
+    <!--android:text="I'm On!"-->
+    <!--android:onClick="iAmOnButtonClicked"/>-->
+
+    <!--</FrameLayout>-->
 
 </FrameLayout>
