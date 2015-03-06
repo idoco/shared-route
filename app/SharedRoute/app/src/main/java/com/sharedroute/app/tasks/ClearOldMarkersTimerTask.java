@@ -12,11 +12,11 @@ import java.util.TimerTask;
 /**
 * Created by cohid01 on 20/02/2015.
 */
-public class ClearOldMarkersRunnable extends TimerTask {
+public class ClearOldMarkersTimerTask extends TimerTask {
     public static final int NO_UPDATE_GRACE = 60 * 1000;
     private final MainMapActivity mainMapActivity;
 
-    public ClearOldMarkersRunnable(MainMapActivity mainMapActivity) {
+    public ClearOldMarkersTimerTask(MainMapActivity mainMapActivity) {
         this.mainMapActivity = mainMapActivity;
     }
 

@@ -1,5 +1,6 @@
 <FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
              xmlns:fab="http://schemas.android.com/apk/res-auto"
+             xmlns:app="http://schemas.android.com/apk/res-auto"
              android:layout_width="fill_parent"
              android:layout_height="fill_parent" >
 
@@ -25,22 +26,21 @@
             android:layout_marginRight="16dp"
             android:layout_marginBottom="16dp"/>
 
-    <!--<FrameLayout-->
-    <!--android:id="@+id/fram_map"-->
-    <!--android:layout_width="fill_parent"-->
-    <!--android:layout_height="fill_parent" >-->
+    <com.sharedroute.app.TooltipView
+            android:id="@+id/tooltip_1"
+            android:layout_width="150dp"
+            android:layout_height="20dp"
+            android:layout_gravity="right|bottom"
+            android:layout_marginRight="16dp"
+            android:layout_marginBottom="90dp"
+            android:text="Click to share your ride"
+            android:textColor="#FFFFFF"
+            android:gravity="center_horizontal"
 
-    <!--<Button-->
-    <!--android:id="@+id/main_button"-->
-    <!--android:layout_width="wrap_content"-->
-    <!--android:layout_height="wrap_content"-->
-    <!--android:layout_gravity="center_horizontal|bottom"-->
-    <!--android:layout_marginBottom="26dp"-->
-    <!--android:background="@drawable/green_menu_btn"-->
-    <!--style="@style/main_menu_btnNormal"-->
-    <!--android:text="I'm On!"-->
-    <!--android:onClick="iAmOnButtonClicked"/>-->
-
-    <!--</FrameLayout>-->
+            app:tooltipColor="#000000"
+            app:arrowWidth="10dp"
+            app:arrowHeight="10dp"
+            app:cornerRadius="5dp"
+            app:anchoredView="@+id/start_button" />
 
 </FrameLayout>

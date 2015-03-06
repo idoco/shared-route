@@ -22,7 +22,7 @@ import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
 import com.sharedroute.app.tasks.AddOrUpdateMarkerRunnable;
-import com.sharedroute.app.tasks.ClearOldMarkersRunnable;
+import com.sharedroute.app.tasks.ClearOldMarkersTimerTask;
 import com.sharedroute.app.tasks.ConnectionLostRunnable;
 
 import java.util.Map;
@@ -43,6 +43,7 @@ public class MainMapActivity extends FragmentActivity implements
     private boolean shareRoute = false;
     private String uniqueId;
     private Timer timer;
+    private TooltipView tooltipView;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -50,6 +51,7 @@ public class MainMapActivity extends FragmentActivity implements
         uniqueId = Settings.Secure.getString(getContentResolver(),
                 Settings.Secure.ANDROID_ID);
         setContentView(R.layout.activity_main_map);
+        setupToolTip();
         init();
     }
 
@@ -67,12 +69,24 @@ public class MainMapActivity extends FragmentActivity implements
         startTimer();
     }
 
+    public void setupToolTip() {
+        tooltipView = (TooltipView) findViewById(R.id.tooltip_1);
+        tooltipView.setClickable(true);
+        tooltipView.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                tooltipView.setVisibility(View.INVISIBLE);
+            }
+        });
+        new Timer().schedule(new ClearToolTipTask(this), 7 * 1000);
+    }
+
     private void startTimer() {
         if (timer != null){
             timer.cancel();
         }
         timer = new Timer();
-        timer.schedule(new ClearOldMarkersRunnable(this), 60 * 1000, 60 * 1000);
+        timer.schedule(new ClearOldMarkersTimerTask(this), 60 * 1000, 60 * 1000);
     }
 
     public void iAmOnButtonClicked(View view) {
@@ -127,6 +141,7 @@ public class MainMapActivity extends FragmentActivity implements
         LocationRequest mLocationRequest = LocationRequest.create();
         mLocationRequest.setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY);
         mLocationRequest.setInterval(5000); // Update location every 5 seconds
+        mLocationRequest.setFastestInterval(5000); // Update location every 5 seconds
 
         LocationServices.FusedLocationApi.requestLocationUpdates(
                 googleApiClient, mLocationRequest, this);
@@ -148,19 +163,19 @@ public class MainMapActivity extends FragmentActivity implements
             //move camera to the user on the first location update
             CameraUpdate upd = CameraUpdateFactory.newLatLngZoom(userLatLng, 16);
             mainMap.moveCamera(upd);
+            shareLocation(userLatLng);
         } else {
             userLocationMarker.setPosition(userLatLng);
-        }
-
-        if (shareRoute){
             shareLocation(userLatLng);
         }
     }
 
     private void shareLocation(LatLng userLatLng) {
-        SharedRouteApp app = (SharedRouteApp) getApplication();
-        SharedLocationService sharedLocationService = app.getSharedLocationService();
-        sharedLocationService.sendLocationUpdate(userLatLng);
+        if (shareRoute) {
+            SharedRouteApp app = (SharedRouteApp) getApplication();
+            SharedLocationService sharedLocationService = app.getSharedLocationService();
+            sharedLocationService.sendLocationUpdate(userLatLng);
+        }
     }
 
     @Override
@@ -190,4 +205,9 @@ public class MainMapActivity extends FragmentActivity implements
     public GoogleMap getMainMap() {
         return mainMap;
     }
+
+    public TooltipView getTooltipView() {
+        return tooltipView;
+    }
+
 }

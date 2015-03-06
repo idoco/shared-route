@@ -4,8 +4,8 @@
     <string name="app_name">SharedRoute</string>
     <string name="title_activity_main_map">SharedRoute</string>
     <string name="server_uri">ws://10.0.2.2:8080/app</string>
-    <string name="title_activity_ride">SharedRoute Ride</string>
-    <string name="sharing_route">Sharing Route!</string>
+    <string name="title_activity_ride">SharedRoute</string>
+    <string name="sharing_route">Sharing Your Route!</string>
     <string name="action_settings">Settings</string>
 
 </resources>
