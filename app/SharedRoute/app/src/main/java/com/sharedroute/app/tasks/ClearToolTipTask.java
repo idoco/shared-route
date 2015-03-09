@@ -1,13 +1,15 @@
-package com.sharedroute.app;
+package com.sharedroute.app.tasks;
 
 import android.view.View;
+import com.sharedroute.app.MainMapActivity;
+import com.sharedroute.app.TooltipView;
 
 import java.util.TimerTask;
 
 /**
 * Created by cohid01 on 05/03/2015.
 */
-class ClearToolTipTask extends TimerTask {
+public class ClearToolTipTask extends TimerTask {
     private final MainMapActivity mainMapActivity;
 
     public ClearToolTipTask(MainMapActivity mainMapActivity) {

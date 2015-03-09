@@ -36,7 +36,7 @@ public class SharedLocationService {
 
         URI uri;
         try {
-            uri = new URI(SERVER_URI);
+            uri = new URI(SERVER_URI + "/" + sessionId);
         } catch (URISyntaxException e) {
             e.printStackTrace();
             return null;

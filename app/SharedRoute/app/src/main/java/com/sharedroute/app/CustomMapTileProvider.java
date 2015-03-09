@@ -23,7 +23,7 @@ public class CustomMapTileProvider implements TileProvider {
     @Override
     public Tile getTile(int x, int y, int zoom) {
         byte[] image = readTileImage(x, y, zoom);
-        return image == null ? null : new Tile(TILE_WIDTH, TILE_HEIGHT, image);
+        return image == null ? NO_TILE : new Tile(TILE_WIDTH, TILE_HEIGHT, image);
     }
 
     private byte[] readTileImage(int x, int y, int zoom) {

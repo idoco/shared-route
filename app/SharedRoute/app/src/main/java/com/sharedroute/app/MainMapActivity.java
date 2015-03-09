@@ -23,6 +23,7 @@ import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
 import com.sharedroute.app.tasks.AddOrUpdateMarkerRunnable;
 import com.sharedroute.app.tasks.ClearOldMarkersTimerTask;
+import com.sharedroute.app.tasks.ClearToolTipTask;
 import com.sharedroute.app.tasks.ConnectionLostRunnable;
 
 import java.util.Map;
