@@ -28,13 +28,13 @@ public class LocationVerticle extends Verticle {
             public void handle(final ServerWebSocket ws) {
                 final Matcher matcher = chatUrlPattern.matcher(ws.path());
                 if (matcher.matches()) {
-                    final ConnectionWrapper connection = registerNewConnection(ws, matcher);
+                    final String sessionId = registerNewConnection(ws, matcher);
                     ws.dataHandler(new IncomingLocationHandler(container, vertx, route));
 
                     ws.closeHandler(new Handler<Void>() {
                         @Override
                         public void handle(Void event) {
-                            closeConnection(connection);
+                            closeConnection(sessionId);
                         }
                     });
 
@@ -42,7 +42,7 @@ public class LocationVerticle extends Verticle {
                         @Override
                         public void handle(Throwable event) {
                             _log.error("Connection error", event);
-                            closeConnection(connection);
+                            closeConnection(sessionId);
                         }
                     });
 
@@ -52,21 +52,20 @@ public class LocationVerticle extends Verticle {
                 }
             }
 
-            private ConnectionWrapper registerNewConnection(ServerWebSocket ws, Matcher matcher) {
+            private String registerNewConnection(ServerWebSocket ws, Matcher matcher) {
                 final String sessionId = matcher.group(1);
-                final String connectionId = ws.binaryHandlerID();
-                final ConnectionWrapper connection = new ConnectionWrapper(sessionId,connectionId);
-                vertx.sharedData().getSet(CONNECTION_MAP).add(connection);
-                _log.info("registering new connection with id: " + connectionId + " for session: " + sessionId +
-                        " current number of connections: " + vertx.sharedData().getSet(CONNECTION_MAP).size());
-                return connection;
+                final String wsHandlerId = ws.binaryHandlerID();
+                vertx.sharedData().getMap(CONNECTION_MAP).put(sessionId, wsHandlerId);
+                _log.info("registering new connection with id: " + wsHandlerId + " for session: " + sessionId +
+                        " current number of connections: " + vertx.sharedData().getMap(CONNECTION_MAP).size());
+                return sessionId;
             }
 
-            private void closeConnection(ConnectionWrapper connection) {
-                vertx.sharedData().getSet(CONNECTION_MAP).remove(connection);
+            private void closeConnection(String sessionId) {
+                vertx.sharedData().getMap(CONNECTION_MAP).remove(sessionId);
                 if (_log.isDebugEnabled()) {
                     _log.info("Connection closed. current number of connections: " +
-                            vertx.sharedData().getSet(CONNECTION_MAP).size());
+                            vertx.sharedData().getMap(CONNECTION_MAP).size());
                 }
             }
 
