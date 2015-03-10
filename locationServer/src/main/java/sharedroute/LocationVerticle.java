@@ -21,7 +21,7 @@ public class LocationVerticle extends Verticle {
     public void start() {
         final Logger _log = container.logger();
         final Pattern chatUrlPattern = Pattern.compile("/app/(\\w+)");
-        final List<LatLng> route = MapUtils.parseRouteFromCsv("route_4.csv");
+        final List<LatLng> route = MapUtils.parseRouteFromCsv(vertx, "route_4.csv");
         _log.info("Websocket verticle up");
 
         vertx.createHttpServer().websocketHandler(new Handler<ServerWebSocket>() {

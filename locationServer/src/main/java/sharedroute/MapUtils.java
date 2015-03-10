@@ -3,8 +3,12 @@ package sharedroute;
 import com.javadocmd.simplelatlng.LatLng;
 import com.javadocmd.simplelatlng.LatLngTool;
 import com.javadocmd.simplelatlng.util.LengthUnit;
+import org.vertx.java.core.Vertx;
+import org.vertx.java.core.buffer.Buffer;
 
-import java.io.*;
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.StringReader;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -14,11 +18,12 @@ import java.util.List;
  */
 public class MapUtils {
 
-    public static List<LatLng> parseRouteFromCsv(String fileName) {
+    public static List<LatLng> parseRouteFromCsv(Vertx vertx, String fileName) {
         List<LatLng> routeData = new ArrayList<>(100);
         try {
-            InputStream in = new FileInputStream("src/main/resources/" + fileName);
-            BufferedReader reader = new BufferedReader(new InputStreamReader(in));
+            Buffer buffer = vertx.fileSystem().readFileSync(fileName);
+            StringReader stringReader = new StringReader(buffer.toString());
+            BufferedReader reader = new BufferedReader(stringReader);
             String line;
             while ((line = reader.readLine()) != null) {
                 String[] RowData = line.split(",");
