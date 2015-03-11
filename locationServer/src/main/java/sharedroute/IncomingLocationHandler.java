@@ -51,6 +51,8 @@ class IncomingLocationHandler implements Handler<Buffer> {
                         vertx.eventBus().send(registeredWsHandlerId, data);
                     }
                 }
+            } else {
+                _log.warn("Filtering out location from connection ["+wsHandlerId+"] location is ["+newPoint+"]");
             }
 
         } catch (IOException e) {
