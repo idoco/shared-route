@@ -1,14 +1,14 @@
 package sharedroute;
 
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.javadocmd.simplelatlng.LatLng;
 import com.javadocmd.simplelatlng.LatLngTool;
 import com.javadocmd.simplelatlng.util.LengthUnit;
 import org.vertx.java.core.Vertx;
 import org.vertx.java.core.buffer.Buffer;
 
-import java.io.BufferedReader;
 import java.io.IOException;
-import java.io.StringReader;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -18,21 +18,25 @@ import java.util.List;
  */
 public class MapUtils {
 
-    public static List<LatLng> parseRouteFromCsv(Vertx vertx, String fileName) {
-        List<LatLng> routeData = new ArrayList<>(100);
+    // very specific GeoJSON parsing
+    public static List<LatLng> parseRouteFromGeoJson(Vertx vertx, String fileName) {
+        List<LatLng> routeData = new ArrayList<>(250);
         try {
+            ObjectMapper mapper = new ObjectMapper();
             Buffer buffer = vertx.fileSystem().readFileSync(fileName);
-            StringReader stringReader = new StringReader(buffer.toString());
-            BufferedReader reader = new BufferedReader(stringReader);
-            String line;
-            while ((line = reader.readLine()) != null) {
-                String[] RowData = line.split(",");
-                String lat = RowData[0];
-                String lng = RowData[1];
-                LatLng latLng = new LatLng(Double.parseDouble(lat), Double.parseDouble(lng));
-                routeData.add(latLng);
+            JsonNode jsonNode = mapper.readTree(buffer.getBytes());
+            JsonNode features = jsonNode.get("features");
+            for (JsonNode feature : features) {
+                JsonNode geometry = feature.get("geometry");
+                JsonNode coordinates = geometry.get("coordinates");
+                for (JsonNode coordinate : coordinates) {
+                    double lng = coordinate.path(0).asDouble();
+                    double lat = coordinate.path(1).asDouble();
+                    routeData.add(new LatLng(lat,lng));
+                }
             }
-        } catch (IOException e) {
+        }
+        catch (IOException e) {
             e.printStackTrace();
         }
         return routeData;
