@@ -8,18 +8,27 @@ import android.app.Application;
  */
 public class SharedRouteApp extends Application {
 
-    private SharedLocationService sharedLocationService;
+    private boolean isSharingRoute = false;
+    private MainMapActivity mainActivity;
 
     @Override
     public void onCreate() {
         super.onCreate();
     }
 
-    public SharedLocationService getSharedLocationService() {
-        return sharedLocationService;
+    public boolean isSharingRoute() {
+        return isSharingRoute;
     }
 
-    public void setSharedLocationService(SharedLocationService sharedLocationService) {
-        this.sharedLocationService = sharedLocationService;
+    public void setSharingRoute(boolean isSharingRoute) {
+        this.isSharingRoute = isSharingRoute;
+    }
+
+    public void setMainActivity(MainMapActivity mainActivity) {
+        this.mainActivity = mainActivity;
+    }
+
+    public MainMapActivity getMainActivity() {
+        return mainActivity;
     }
 }

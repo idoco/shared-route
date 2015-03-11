@@ -7,7 +7,6 @@ import android.provider.Settings;
 import android.support.v4.app.FragmentActivity;
 import android.util.Log;
 import android.view.View;
-import android.widget.Button;
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.location.LocationListener;
@@ -35,16 +34,16 @@ public class MainMapActivity extends FragmentActivity implements
         LocationListener, MapUpdatesListener {
 
     private GoogleMap mainMap;
-    private Button mainButton;
     private GoogleApiClient googleApiClient;
     private Marker userLocationMarker;
     private final Map<String, MarkerWrapper> sessionIdToMarkers = new ConcurrentHashMap<String, MarkerWrapper>();
 
     private final String TAG = "SharedRoute";
-    private boolean shareRoute = false;
     private String uniqueId;
     private Timer timer;
     private TooltipView tooltipView;
+    private SharedRouteApp sharedRouteApp;
+    private SharedLocationService sharedLocationService;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -62,13 +61,30 @@ public class MainMapActivity extends FragmentActivity implements
         init();
     }
 
+    @Override
+    protected void onPause() {
+        super.onPause();
+        if (!sharedRouteApp.isSharingRoute()){
+            stopServices();
+        }
+    }
+
     private void init() {
-        shareRoute = false;
+        sharedRouteApp = (SharedRouteApp) getApplication();
+        sharedRouteApp.setSharingRoute(false);
+        sharedRouteApp.setMainActivity(this);
         setUpMapIfNeeded();
         buildGoogleApiClientIfNeeded();
         connectToSharedLocationServicesIfNeeded();
         startTimer();
     }
+
+    public void stopServices() {
+        sharedLocationService.closeConnection();
+        LocationServices.FusedLocationApi.removeLocationUpdates(
+                googleApiClient, this);
+    }
+
 
     public void setupToolTip() {
         tooltipView = (TooltipView) findViewById(R.id.tooltip_1);
@@ -91,7 +107,7 @@ public class MainMapActivity extends FragmentActivity implements
     }
 
     public void iAmOnButtonClicked(View view) {
-        shareRoute = true;
+        sharedRouteApp.setSharingRoute(true);
         if (userLocationMarker != null && userLocationMarker.getPosition() != null) {
             shareLocation(userLocationMarker.getPosition());
         }
@@ -123,17 +139,16 @@ public class MainMapActivity extends FragmentActivity implements
                     .addApi(LocationServices.API)
                     .build();
             googleApiClient.connect();
+        } else {
+            googleApiClient.reconnect();
         }
     }
 
     public void connectToSharedLocationServicesIfNeeded() {
-        SharedRouteApp app = (SharedRouteApp) getApplication();
-        SharedLocationService sharedLocationService = app.getSharedLocationService();
         if (sharedLocationService == null || sharedLocationService.isClosed()) { //should I reuse the old connection?
             sharedLocationService = new SharedLocationService.Builder(this)
                     .setSessionId(uniqueId)
                     .build();
-            app.setSharedLocationService(sharedLocationService);
         }
     }
 
@@ -172,9 +187,7 @@ public class MainMapActivity extends FragmentActivity implements
     }
 
     private void shareLocation(LatLng userLatLng) {
-        if (shareRoute) {
-            SharedRouteApp app = (SharedRouteApp) getApplication();
-            SharedLocationService sharedLocationService = app.getSharedLocationService();
+        if (sharedRouteApp.isSharingRoute()) {
             sharedLocationService.sendLocationUpdate(userLatLng);
         }
     }
@@ -210,5 +223,4 @@ public class MainMapActivity extends FragmentActivity implements
     public TooltipView getTooltipView() {
         return tooltipView;
     }
-
 }

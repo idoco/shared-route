@@ -24,7 +24,7 @@
             fab:fab_icon="@drawable/ic_cancel"
             fab:fab_colorNormal="#F44336"
             fab:fab_colorPressed="#C62828"
-            android:onClick="foo"
+            android:onClick="exitClicked"
             android:layout_gravity="left|bottom"
             android:layout_marginLeft="16dp"
             android:layout_marginBottom="16dp"/>
@@ -36,7 +36,7 @@
             fab:fab_icon="@drawable/ic_whatsapp_flat"
             fab:fab_colorNormal="#4CAF50"
             fab:fab_colorPressed="#2E7D32"
-            android:onClick="goo"
+            android:onClick="shareToWhatsAppClicked"
             android:layout_gravity="right|bottom"
             android:layout_marginRight="16dp"
             android:layout_marginBottom="16dp"/>

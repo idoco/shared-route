@@ -24,6 +24,7 @@ public class SharedLocationService {
 
     private final String sessionId;
     private MapUpdatesListener mapUpdatesListener;
+    private boolean shuttingDown = false;
 
     public SharedLocationService(MapUpdatesListener mapUpdatesListener, String sessionId) {
         this.mapUpdatesListener = mapUpdatesListener;
@@ -57,7 +58,9 @@ public class SharedLocationService {
             @Override
             public void onClose(int i, String s, boolean b) {
                 Log.i("SharedRoute", "Websocket Closed " + s);
-                mapUpdatesListener.onLocationServiceClose();
+                if (!shuttingDown) {
+                    mapUpdatesListener.onLocationServiceClose();
+                }
             }
 
             @Override
@@ -84,6 +87,11 @@ public class SharedLocationService {
 
     public boolean isClosed() {
         return mWebSocketClient.getConnection().isClosed();
+    }
+
+    public void closeConnection() {
+        shuttingDown = true;
+        mWebSocketClient.getConnection().close();
     }
 
     public static final class Builder {
