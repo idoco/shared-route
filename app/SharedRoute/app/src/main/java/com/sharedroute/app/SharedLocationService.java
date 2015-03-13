@@ -52,8 +52,8 @@ public class SharedLocationService {
             @Override
             public void onMessage(final String s) {
                 Log.i("SharedRoute","Websocket incoming message "+ s);
-                Map<String, LatLng> locationUpdatesMap = messageParser.parseLocationUpdateJson(s);
-                updateLocationsOnMap(locationUpdatesMap);
+                Map<String, LatLng> locationUpdates = messageParser.parseLocationUpdateJson(s);
+                updateLocationsOnMap(locationUpdates);
             }
             @Override
             public void onClose(int i, String s, boolean b) {
@@ -72,10 +72,13 @@ public class SharedLocationService {
         return mWebSocketClient;
     }
 
-    private void updateLocationsOnMap(Map<String, LatLng> locationUpdatesMap) {
-        for (String sessionId : locationUpdatesMap.keySet()) {
-            LatLng newLatLng = locationUpdatesMap.get(sessionId);
-            mapUpdatesListener.addOrUpdateMapMarker(sessionId, newLatLng);
+    private void updateLocationsOnMap(Map<String, LatLng> locationUpdates) {
+        for (String sessionId : locationUpdates.keySet()) {
+            boolean sentByDifferentDevice = !this.sessionId.equals(sessionId);
+            if (sentByDifferentDevice) {
+                LatLng newLatLng = locationUpdates.get(sessionId);
+                mapUpdatesListener.addOrUpdateMapMarker(sessionId, newLatLng);
+            }
         }
     }
 
