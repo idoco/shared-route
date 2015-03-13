@@ -41,6 +41,7 @@ public class MessageParser {
     }
 
 
+    @SuppressWarnings("unchecked")
     public JSONObject createLocationJson(LatLng latLng, String sessionId) {
         JSONObject jsonLocation = new JSONObject();
         jsonLocation.put("sessionId", sessionId);
