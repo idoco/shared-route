@@ -24,7 +24,7 @@ public class LocationVerticle extends Verticle {
     public void start() {
         final Logger _log = container.logger();
         final Pattern chatUrlPattern = Pattern.compile("/app");
-        final List<LatLng> route = MapUtils.parseRouteFromGeoJson(vertx, "map.geojson");
+        final List<LatLng> route = MapUtils.parseRouteFromGeoJson(vertx, "accurate_map.geojson");
         _log.info("Websocket verticle is up");
 
         vertx.createHttpServer().websocketHandler(new Handler<ServerWebSocket>() {
