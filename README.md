@@ -1,4 +1,4 @@
-# shared-route 
+# SharedRoute 
 Crowdsourced transit data for share taxis (sherut) in Tel Aviv.
 
 Live map                   |  Ride sharing
