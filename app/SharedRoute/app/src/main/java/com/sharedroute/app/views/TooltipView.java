@@ -1,4 +1,4 @@
-package com.sharedroute.app;
+package com.sharedroute.app.views;
 
 import android.content.Context;
 import android.content.res.Resources;
@@ -9,7 +9,13 @@ import android.support.annotation.*;
 import android.util.AttributeSet;
 import android.view.View;
 import android.widget.TextView;
+import com.sharedroute.app.R;
 
+/**
+ * Not my code.
+ * From: https://github.com/venmo/tooltip-view
+ */
+@SuppressWarnings("UnusedDeclaration")
 public class TooltipView extends TextView {
 
     private static final int NOT_PRESENT = Integer.MIN_VALUE;

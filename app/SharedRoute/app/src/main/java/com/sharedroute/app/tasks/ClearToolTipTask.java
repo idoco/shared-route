@@ -2,7 +2,7 @@ package com.sharedroute.app.tasks;
 
 import android.view.View;
 import com.sharedroute.app.MainMapActivity;
-import com.sharedroute.app.TooltipView;
+import com.sharedroute.app.views.TooltipView;
 
 import java.util.TimerTask;
 

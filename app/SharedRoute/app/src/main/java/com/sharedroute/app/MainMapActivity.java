@@ -24,6 +24,7 @@ import com.sharedroute.app.tasks.AddOrUpdateMarkerRunnable;
 import com.sharedroute.app.tasks.ClearOldMarkersTimerTask;
 import com.sharedroute.app.tasks.ClearToolTipTask;
 import com.sharedroute.app.tasks.ConnectionLostRunnable;
+import com.sharedroute.app.views.TooltipView;
 
 import java.util.Map;
 import java.util.Timer;
@@ -33,12 +34,18 @@ public class MainMapActivity extends FragmentActivity implements
         GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener,
         LocationListener, MapUpdatesListener {
 
+    public static final int TOOLTIP_APPEARANCE_TIME = 7 * 1000;
+    public static final int MARKER_CLEANER_INTERVAL = 60 * 1000;
+    public static final int LOCATION_REQUEST_INTERVAL = 5 * 1000;
+    public static final LatLng DEFAULT_LOCATION = new LatLng(32.0807898, 34.7731816); //TLV center
+    public static final int DEFAULT_ZOOM = 16;
+    public static final String TAG = "SharedRoute";
+
     private GoogleMap mainMap;
     private GoogleApiClient googleApiClient;
     private Marker userLocationMarker;
     private final Map<String, MarkerWrapper> sessionIdToMarkers = new ConcurrentHashMap<String, MarkerWrapper>();
 
-    private final String TAG = "SharedRoute";
     private String uniqueId;
     private Timer timer;
     private TooltipView tooltipView;
@@ -95,7 +102,7 @@ public class MainMapActivity extends FragmentActivity implements
                 tooltipView.setVisibility(View.INVISIBLE);
             }
         });
-        new Timer().schedule(new ClearToolTipTask(this), 7 * 1000);
+        new Timer().schedule(new ClearToolTipTask(this), TOOLTIP_APPEARANCE_TIME);
     }
 
     private void startTimer() {
@@ -103,7 +110,7 @@ public class MainMapActivity extends FragmentActivity implements
             timer.cancel();
         }
         timer = new Timer();
-        timer.schedule(new ClearOldMarkersTimerTask(this), 60 * 1000, 60 * 1000);
+        timer.schedule(new ClearOldMarkersTimerTask(this), MARKER_CLEANER_INTERVAL, MARKER_CLEANER_INTERVAL);
     }
 
     public void iAmOnButtonClicked(View view) {
@@ -126,8 +133,7 @@ public class MainMapActivity extends FragmentActivity implements
 
         MapBuildUtils.customizeMap(mainMap, getResources().getAssets());
 
-        LatLng initialLatLng = new LatLng(32.0807898,34.7731816);
-        CameraUpdate upd = CameraUpdateFactory.newLatLngZoom(initialLatLng, 16);
+        CameraUpdate upd = CameraUpdateFactory.newLatLngZoom(DEFAULT_LOCATION, DEFAULT_ZOOM);
         mainMap.moveCamera(upd);
     }
 
@@ -156,8 +162,8 @@ public class MainMapActivity extends FragmentActivity implements
     public void onConnected(Bundle bundle) {
         LocationRequest mLocationRequest = LocationRequest.create();
         mLocationRequest.setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY);
-        mLocationRequest.setInterval(5000); // Update location every 5 seconds
-        mLocationRequest.setFastestInterval(5000); // Update location every 5 seconds
+        mLocationRequest.setInterval(LOCATION_REQUEST_INTERVAL);
+        mLocationRequest.setFastestInterval(LOCATION_REQUEST_INTERVAL);
 
         LocationServices.FusedLocationApi.requestLocationUpdates(
                 googleApiClient, mLocationRequest, this);
@@ -177,7 +183,7 @@ public class MainMapActivity extends FragmentActivity implements
             userLocationMarker = mainMap.addMarker(initialUserLocation);
 
             //move camera to the user on the first location update
-            CameraUpdate upd = CameraUpdateFactory.newLatLngZoom(userLatLng, 16);
+            CameraUpdate upd = CameraUpdateFactory.newLatLngZoom(userLatLng, DEFAULT_ZOOM);
             mainMap.moveCamera(upd);
             shareLocation(userLatLng);
         } else {

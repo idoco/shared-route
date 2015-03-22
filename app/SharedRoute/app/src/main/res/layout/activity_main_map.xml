@@ -26,7 +26,7 @@
             android:layout_marginRight="16dp"
             android:layout_marginBottom="16dp"/>
 
-    <com.sharedroute.app.TooltipView
+    <com.sharedroute.app.views.TooltipView
             android:id="@+id/tooltip_1"
             android:layout_width="150dp"
             android:layout_height="20dp"
