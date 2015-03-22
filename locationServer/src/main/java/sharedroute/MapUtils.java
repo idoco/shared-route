@@ -21,7 +21,7 @@ public class MapUtils {
 
     // very specific GeoJSON parsing
     public static List<LatLng> parseRouteFromGeoJson(Vertx vertx, String fileName) {
-        List<LatLng> routeData = new ArrayList<>(250);
+        List<LatLng> routeData = new ArrayList<>(270);
         try {
             ObjectMapper mapper = new ObjectMapper();
             Buffer buffer = vertx.fileSystem().readFileSync(fileName);
