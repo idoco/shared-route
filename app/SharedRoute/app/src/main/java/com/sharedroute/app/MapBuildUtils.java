@@ -2,6 +2,7 @@ package com.sharedroute.app;
 
 import android.content.res.AssetManager;
 import android.graphics.Color;
+import android.location.Location;
 import android.util.Log;
 import com.cocoahero.android.geojson.*;
 import com.google.android.gms.maps.CameraUpdate;
@@ -98,4 +99,11 @@ public class MapBuildUtils {
         mMap.addPolyline(polylineOptions);
     }
 
+    static float distance(LatLng location1, LatLng location2) {
+        float[] distanceResultArray = new float[1];
+        Location.distanceBetween(
+                location1.latitude, location1.longitude,
+                location2.latitude, location2.longitude, distanceResultArray);
+        return distanceResultArray[0];
+    }
 }

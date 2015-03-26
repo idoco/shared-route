@@ -37,7 +37,7 @@ public class MainMapActivity extends FragmentActivity implements
     public static final int TOOLTIP_APPEARANCE_TIME = 7 * 1000;
     public static final int MARKER_CLEANER_INTERVAL = 60 * 1000;
     public static final int LOCATION_REQUEST_INTERVAL = 5 * 1000;
-    public static final LatLng DEFAULT_LOCATION = new LatLng(32.0807898, 34.7731816); //TLV center
+    public static final LatLng CITY_CENTER_LOCATION = new LatLng(32.0807898, 34.7731816); //TLV center
     public static final int DEFAULT_ZOOM = 16;
     public static final String TAG = "SharedRoute";
 
@@ -133,7 +133,7 @@ public class MainMapActivity extends FragmentActivity implements
 
         MapBuildUtils.customizeMap(mainMap, getResources().getAssets());
 
-        CameraUpdate upd = CameraUpdateFactory.newLatLngZoom(DEFAULT_LOCATION, DEFAULT_ZOOM);
+        CameraUpdate upd = CameraUpdateFactory.newLatLngZoom(CITY_CENTER_LOCATION, DEFAULT_ZOOM);
         mainMap.moveCamera(upd);
     }
 
@@ -183,13 +183,17 @@ public class MainMapActivity extends FragmentActivity implements
             userLocationMarker = mainMap.addMarker(initialUserLocation);
 
             //move camera to the user on the first location update
-            CameraUpdate upd = CameraUpdateFactory.newLatLngZoom(userLatLng, DEFAULT_ZOOM);
-            mainMap.moveCamera(upd);
-            shareLocation(userLatLng);
+
+            float userDistanceFromCenter = MapBuildUtils.distance(CITY_CENTER_LOCATION, userLatLng);
+            if (userDistanceFromCenter < 5000) {
+                CameraUpdate upd = CameraUpdateFactory.newLatLngZoom(userLatLng, DEFAULT_ZOOM);
+                mainMap.moveCamera(upd);
+            }
+
         } else {
             userLocationMarker.setPosition(userLatLng);
-            shareLocation(userLatLng);
         }
+        shareLocation(userLatLng);
     }
 
     private void shareLocation(LatLng userLatLng) {
