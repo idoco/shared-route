@@ -47,7 +47,7 @@
   </Placemark>
   <Placemark>
 	<name>route_4_main</name>
-	<Style><LineStyle><color>ff0000ff</color></LineStyle><PolyStyle><fill>0</fill></PolyStyle></Style>
+	<Style><LineStyle><color>50FF7800</color></LineStyle><PolyStyle><fill>0</fill></PolyStyle></Style>
 	<ExtendedData><SchemaData schemaUrl="#OGRGeoJSON">
 		<SimpleData name="stroke">#1976D2</SimpleData>
 		<SimpleData name="stroke-width">3</SimpleData>
