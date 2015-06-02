@@ -48,7 +48,7 @@ class IncomingLocationHandler implements Handler<Buffer> {
             }
 
         } catch (IOException e) {
-            _log.error("Error parsing json [" + incomingData + "]");
+            _log.error("Error parsing json [" + incomingData + "]",e);
         }
     }
 
