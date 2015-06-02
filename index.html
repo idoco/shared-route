@@ -1,62 +1,70 @@
 <!DOCTYPE html>
-<html lang="en-us">
-  <head>
-    <meta charset="UTF-8">
-    <title>SharedRoute by idoco</title>
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <link rel="stylesheet" type="text/css" href="stylesheets/normalize.css" media="screen">
-    <link href='http://fonts.googleapis.com/css?family=Open+Sans:400,700' rel='stylesheet' type='text/css'>
-    <link rel="stylesheet" type="text/css" href="stylesheets/stylesheet.css" media="screen">
-    <link rel="stylesheet" type="text/css" href="stylesheets/github-light.css" media="screen">
-  </head>
-  <body>
-    <section class="page-header">
-      <h1 class="project-name">SharedRoute</h1>
-      <h2 class="project-tagline">Crowdsourced transit data for share taxis (sherut) in Tel Aviv</h2>
-      <a href="https://github.com/idoco/shared-route" class="btn">View on GitHub</a>
-      <a href="https://github.com/idoco/shared-route/zipball/master" class="btn">Download .zip</a>
-      <a href="https://github.com/idoco/shared-route/tarball/master" class="btn">Download .tar.gz</a>
-    </section>
+<html>
+<head>
+    <title>SharedRoute</title>
+    <meta name="viewport" content="initial-scale=1.0, user-scalable=no">
+    <meta charset="utf-8">
+    <style>
+        html, body, #map-canvas {
+            height: 100%;
+            margin: 0px;
+            padding: 0px
+        }
+    </style>
+    <script src="https://maps.googleapis.com/maps/api/js?v=3.exp&key=AIzaSyDW8g1aWXUVF3ELNbIGpGhXbMYZp7jScVQ&callba"></script>
+    <script>
+        function initialize() {
+			var myLatlng = new google.maps.LatLng(32.078043, 34.774177); // Add the coordinates
 
-    <section class="main-content">
-      <h1>
-<a id="sharedroute" class="anchor" href="#sharedroute" aria-hidden="true"><span class="octicon octicon-link"></span></a>SharedRoute</h1>
+            var mapOptions = {
+                center: myLatlng,
+                zoom: 14, // The initial zoom level when your map loads (0-20)
+                minZoom: 13, // Minimum zoom level allowed (0-20)
+                maxZoom: 17, // Maximum soom level allowed (0-20)
+                zoomControl:true, // Set to true if using zoomControlOptions below, or false to remove all zoom controls.
+                zoomControlOptions: {
+                    style:google.maps.ZoomControlStyle.DEFAULT // Change to SMALL to force just the + and - buttons.
+                },
+                mapTypeId: google.maps.MapTypeId.ROADMAP, // Set the type of Map
+                scrollwheel: true, // Disable Mouse Scroll zooming (Essential for responsive sites!)
+                // All of the below are set to true by default, so simply remove if set to true:
+                panControl:false, // Set to false to disable
+                mapTypeControl:false, // Disable Map/Satellite switch
+                scaleControl:false, // Set to false to hide scale
+                streetViewControl:false, // Set to disable to hide street view
+                overviewMapControl:false, // Set to false to remove overview control
+                rotateControl:false // Set to false to disable rotate control			
+            };
+            var mapDiv = document.getElementById('map-canvas');
+            var map = new google.maps.Map(mapDiv, mapOptions);
+            var image = new google.maps.MarkerImage("https://www.creare.co.uk/wp-content/uploads/2013/08/marker.png", null, null, null, new google.maps.Size(40,52)); // Create a variable for our marker image.
+            var marker = new google.maps.Marker({ // Set the marker
+                position: myLatlng, // Position marker to coordinates
+                icon:image, //use our image as the marker
+                map: map, // assign the marker to our map variable
+                title: 'Click to visit our company on Google Places' // Marker ALT Text
+            });
+			
+			var ctaLayer = new google.maps.KmlLayer({
+				url: 'http://raw.githubusercontent.com/idoco/shared-route/master/map.kml'
+			});
+			ctaLayer.setMap(map);
 
-<p>Crowdsourced transit data for share taxis (sherut) in Tel Aviv.</p>
+            // We add a DOM event here to show an alert if the DIV containing the
+            // map is clicked. Note that we do this within the intialize function
+            // since the document object isn't loaded until after the window.load
+            // event.
+            // google.maps.event.addDomListener(mapDiv, 'click', showAlert);
+        }
 
-<p>Currently available on the Play store.</p>
+        // function showAlert() {
+        //  window.alert('DIV clicked');
+        //}
 
-<p><em><a href="https://play.google.com/store/apps/details?id=com.sharedroute.app"><img src="https://developer.android.com/images/brand/en_app_rgb_wo_60.png" alt="Play Store Badge"></a></em></p>
-
-<table>
-<thead>
-<tr>
-<th align="center">Live map</th>
-<th align="center">Ride sharing</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td align="center"><img src="https://raw.githubusercontent.com/idoco/shared-route/master/Screenshot_live_map.png" alt=""></td>
-<td align="center"><img src="https://raw.githubusercontent.com/idoco/shared-route/master/Screenshot_share-ride.png" alt=""></td>
-</tr>
-</tbody>
-</table>
-
-<h2>
-<a id="contributing-bug-reports" class="anchor" href="#contributing-bug-reports" aria-hidden="true"><span class="octicon octicon-link"></span></a>Contributing Bug reports</h2>
-
-<p>We use GitHub for bug tracking. Please search the existing issues for your bug and create a new one if the issue is not yet tracked!</p>
-
-      <footer class="site-footer">
-        <span class="site-footer-owner"><a href="https://github.com/idoco/shared-route">SharedRoute</a> is maintained by <a href="https://github.com/idoco">idoco</a>.</span>
-
-        <span class="site-footer-credits">This page was generated by <a href="https://pages.github.com">GitHub Pages</a> using the <a href="https://github.com/jasonlong/cayman-theme">Cayman theme</a> by <a href="https://twitter.com/jasonlong">Jason Long</a>.</span>
-      </footer>
-
-    </section>
-
-  
-  </body>
+        google.maps.event.addDomListener(window, 'load', initialize);
+    </script>
+</head>
+<body>
+<div id="map-canvas"></div>
+</body>
 </html>
-
