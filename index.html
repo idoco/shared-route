@@ -22,6 +22,7 @@
         var map;
         var userLocation;
         var userMaker;
+        var isSharingLocation = false;
 
         function initialize() {
 			var defaultLatLng = new google.maps.LatLng(32.078043, 34.774177); // Add the coordinates
@@ -73,6 +74,11 @@
                     console.log("New user position",position);
                     userLocation = new google.maps.LatLng(position.coords.latitude, position.coords.longitude);
                     userMaker.setPosition(userLocation);
+
+                    if (isSharingLocation) {
+                        sendMessage(userLocation.lat(), userLocation.lng());
+                    }
+
                     setTimeout(getLocation,5000);
                 });
             } else {
@@ -111,8 +117,14 @@
         }
 
         function startRide(){
-            alert("Current Location Shared");
-            sendMessage(userLocation.lat(),userLocation.lng());
+            var button = document.getElementsByClassName("btn-floating")[0];
+            if (!isSharingLocation){
+                button.className = "btn-floating btn-large waves-effect waves-light red";
+                isSharingLocation = true;
+            } else{
+                button.className = "btn-floating btn-large waves-effect waves-light green";
+                isSharingLocation = false;
+            }
         }
 
 
