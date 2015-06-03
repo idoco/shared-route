@@ -7,12 +7,19 @@
     <style>
         html, body, #map-canvas {
             height: 100%;
-            margin: 0px;
-            padding: 0px
+            margin: 0;
+            padding: 0
         }
     </style>
     <script src="https://maps.googleapis.com/maps/api/js?v=3.exp&key=AIzaSyDW8g1aWXUVF3ELNbIGpGhXbMYZp7jScVQ"></script>
     <script>
+        var wsocket;
+        var sessionId = Math.floor((Math.random() * 10000000) + 1);
+        var serviceLocation = "ws://sharedroute.cloudapp.net/app";
+        var taxiMap = {};
+        var taxiIcon;
+        var map;
+
         function initialize() {
 			var myLatlng = new google.maps.LatLng(32.078043, 34.774177); // Add the coordinates
 
@@ -36,19 +43,24 @@
                 rotateControl:false // Set to false to disable rotate control			
             };
             var mapDiv = document.getElementById('map-canvas');
-            var map = new google.maps.Map(mapDiv, mapOptions);
-            var image = new google.maps.MarkerImage("https://www.creare.co.uk/wp-content/uploads/2013/08/marker.png", null, null, null, new google.maps.Size(40,52)); // Create a variable for our marker image.
-            var marker = new google.maps.Marker({ // Set the marker
+            map = new google.maps.Map(mapDiv, mapOptions);
+
+            taxiIcon = new google.maps.MarkerImage(
+                    "https://raw.githubusercontent.com/idoco/shared-route/master/app/SharedRoute/app/src/main/res/drawable-xhdpi/ic_launcher.png",
+                    null, null, null, new google.maps.Size(40,40)); // Create a variable for our marker image.
+
+            new google.maps.Marker({ // Set the marker
                 position: myLatlng, // Position marker to coordinates
-                icon:image, //use our image as the marker
                 map: map, // assign the marker to our map variable
-                title: 'Click to visit our company on Google Places' // Marker ALT Text
+                title: 'Incoming Taxi!'
             });
-			
+
 			var ctaLayer = new google.maps.KmlLayer({
 				url: 'http://raw.githubusercontent.com/idoco/shared-route/master/map.kml'
 			});
 			ctaLayer.setMap(map);
+
+            connectToServer();
 
             // We add a DOM event here to show an alert if the DIV containing the
             // map is clicked. Note that we do this within the intialize function
@@ -61,11 +73,46 @@
         //  window.alert('DIV clicked');
         //}
 
+        function onMessageReceived(evt) {
+            var msg = JSON.parse(evt.data); // native API
+            var msgSessionId = msg["sessionId"];
+            if (taxiMap[msgSessionId]){
+                console.log("In map" + msg.toString());
+                var newMarkerLatLng = new google.maps.LatLng(msg["lat"], msg["lng"]);
+                var newMarker = taxiMap[msgSessionId];
+                newMarker.setPosition(newMarkerLatLng)
+
+            } else {
+                console.log("Not in map" + msg.toString());
+                var markerLatLng = new google.maps.LatLng(msg["lat"], msg["lng"]);
+                taxiMap[msgSessionId] = new google.maps.Marker({ // Set the marker
+                    position: markerLatLng, // Position marker to coordinates
+                    icon: taxiIcon, //use our image as the marker
+                    map: map, // assign the marker to our map variable
+                    title: 'Incoming Taxi!'
+                });
+            }
+        }
+        function sendMessage(lat, lng) {
+            var msg = '{"sessionId":"' + sessionId + '", "lat":"' + lat + '", "lng":"' + lng + '"}';
+            wsocket.send(msg);
+        }
+
+        function connectToServer() {
+            wsocket = new WebSocket(serviceLocation);
+            wsocket.onmessage = onMessageReceived;
+        }
+
+
         google.maps.event.addDomListener(window, 'load', initialize);
     </script>
 </head>
 <body>
-<!--https://github.com/idoco/shared-route/-->
-<a href="https://github.com/idoco/shared-route/"><img style="position: absolute; top: 0; right: 0; border: 0; z-index: 999;" src="https://camo.githubusercontent.com/a6677b08c955af8400f44c6298f40e7d19cc5b2d/68747470733a2f2f73332e616d617a6f6e6177732e636f6d2f6769746875622f726962626f6e732f666f726b6d655f72696768745f677261795f3664366436642e706e67" alt="Fork me on GitHub" data-canonical-src="https://s3.amazonaws.com/github/ribbons/forkme_right_gray_6d6d6d.png"></a><div id="map-canvas"></div>
+<a href="https://github.com/idoco/shared-route/">
+    <img style="position: absolute; top: 0; right: 0; border: 0; z-index: 999;"
+         src="https://s3.amazonaws.com/github/ribbons/forkme_right_gray_6d6d6d.png"
+         alt="Fork me on GitHub">
+</a>
+<div id="map-canvas"></div>
 </body>
 </html>
