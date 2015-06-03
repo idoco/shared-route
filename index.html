@@ -20,12 +20,14 @@
         var taxiMap = {};
         var taxiIcon;
         var map;
+        var userLocation;
+        var userMaker;
 
         function initialize() {
-			var myLatlng = new google.maps.LatLng(32.078043, 34.774177); // Add the coordinates
+			var defaultLatLng = new google.maps.LatLng(32.078043, 34.774177); // Add the coordinates
 
             var mapOptions = {
-                center: myLatlng,
+                center: defaultLatLng,
                 zoom: 14, // The initial zoom level when your map loads (0-20)
                 minZoom: 13, // Minimum zoom level allowed (0-20)
                 maxZoom: 17, // Maximum soom level allowed (0-20)
@@ -50,10 +52,10 @@
                     "https://raw.githubusercontent.com/idoco/shared-route/master/app/SharedRoute/app/src/main/res/drawable-xhdpi/ic_launcher.png",
                     null, null, null, new google.maps.Size(40,40)); // Create a variable for our marker image.
 
-            new google.maps.Marker({ // Set the marker
-                position: myLatlng, // Position marker to coordinates
+            userMaker = new google.maps.Marker({ // Set the marker
+                position: defaultLatLng, // Position marker to coordinates
                 map: map, // assign the marker to our map variable
-                title: 'Incoming Taxi!'
+                title: 'Me!'
             });
 
 			var ctaLayer = new google.maps.KmlLayer({
@@ -62,17 +64,21 @@
 			ctaLayer.setMap(map);
 
             connectToServer();
-
-            // We add a DOM event here to show an alert if the DIV containing the
-            // map is clicked. Note that we do this within the intialize function
-            // since the document object isn't loaded until after the window.load
-            // event.
-            // google.maps.event.addDomListener(mapDiv, 'click', showAlert);
+            getLocation();
         }
 
-        // function showAlert() {
-        //  window.alert('DIV clicked');
-        //}
+        function getLocation() {
+            if (navigator.geolocation) {
+                navigator.geolocation.getCurrentPosition(function(position){
+                    console.log("New user position",position);
+                    userLocation = new google.maps.LatLng(position.coords.latitude, position.coords.longitude);
+                    userMaker.setPosition(userLocation);
+                    setTimeout(getLocation,5000);
+                });
+            } else {
+                alert("Geolocation is not supported by this browser.");
+            }
+        }
 
         function onMessageReceived(evt) {
             var msg = JSON.parse(evt.data); // native API
@@ -105,7 +111,8 @@
         }
 
         function startRide(){
-            alert("Button clicked");
+            alert("Current Location Shared");
+            sendMessage(userLocation.lat(),userLocation.lng());
         }
 
 
