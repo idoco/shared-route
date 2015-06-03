@@ -11,6 +11,7 @@
             padding: 0
         }
     </style>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/materialize/0.96.1/css/materialize.min.css">
     <script src="https://maps.googleapis.com/maps/api/js?v=3.exp&key=AIzaSyDW8g1aWXUVF3ELNbIGpGhXbMYZp7jScVQ"></script>
     <script>
         var wsocket;
@@ -103,6 +104,10 @@
             wsocket.onmessage = onMessageReceived;
         }
 
+        function startRide(){
+            alert("Button clicked");
+        }
+
 
         google.maps.event.addDomListener(window, 'load', initialize);
     </script>
@@ -114,5 +119,8 @@
          alt="Fork me on GitHub">
 </a>
 <div id="map-canvas"></div>
+<div class="fixed-action-btn" style="bottom: 45px; right: 25px;">
+    <a class="btn-floating btn-large waves-effect waves-light green" onclick="startRide()"><i class="mdi-maps-directions-bus"></i></a>
+</div>
 </body>
 </html>
