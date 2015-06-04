@@ -13,6 +13,8 @@
     </style>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/materialize/0.96.1/css/materialize.min.css">
     <script src="https://maps.googleapis.com/maps/api/js?v=3.exp&key=AIzaSyDW8g1aWXUVF3ELNbIGpGhXbMYZp7jScVQ"></script>
+    <script type="text/javascript" src="https://code.jquery.com/jquery-2.1.1.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/materialize/0.96.1/js/materialize.min.js"></script>
     <script>
         var wsocket;
         var sessionId = Math.floor((Math.random() * 10000000) + 1);
@@ -129,16 +131,16 @@
         }
 
         function startRide(){
-            var button = document.getElementsByClassName("btn-floating")[0];
+            var button = document.getElementsByClassName("btn")[0];
             if (!isSharingLocation){
-                button.className = "btn-floating btn-large waves-effect waves-light red";
+                button.className = "waves-effect waves-light btn red";
                 if (userLocation) {
                     sendMessage(userLocation.lat(), userLocation.lng());
                 }
                 isSharingLocation = true;
 
             } else{
-                button.className = "btn-floating btn-large waves-effect waves-light green";
+                button.className = "waves-effect waves-light btn green";
                 isSharingLocation = false;
             }
         }
@@ -155,7 +157,8 @@
 </a>
 <div id="map-canvas"></div>
 <div class="fixed-action-btn" style="bottom: 45px; right: 25px;">
-    <a class="btn-floating btn-large waves-effect waves-light green" onclick="startRide()"><i class="mdi-maps-directions-bus"></i></a>
+    <!--<a class="btn-floating btn-large waves-effect waves-light green" onclick="startRide()"><i class="mdi-maps-directions-bus"></i></a>-->
+    <a class="waves-effect waves-light btn green" onclick="startRide()"><i class="mdi-maps-directions-bus right"></i>Share My Taxi</a>
 </div>
 </body>
 </html>
