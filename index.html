@@ -4,6 +4,22 @@
     <title>SharedRoute</title>
     <meta name="viewport" content="initial-scale=1.0, user-scalable=no">
     <meta charset="utf-8">
+
+    <link rel="apple-touch-icon" sizes="57x57" href="favicons/apple-touch-icon-57x57.png">
+    <link rel="apple-touch-icon" sizes="60x60" href="favicons/apple-touch-icon-60x60.png">
+    <link rel="apple-touch-icon" sizes="72x72" href="favicons/apple-touch-icon-72x72.png">
+    <link rel="apple-touch-icon" sizes="76x76" href="favicons/apple-touch-icon-76x76.png">
+    <link rel="apple-touch-icon" sizes="114x114" href="favicons/apple-touch-icon-114x114.png">
+    <link rel="apple-touch-icon" sizes="120x120" href="favicons/apple-touch-icon-120x120.png">
+    <link rel="apple-touch-icon" sizes="144x144" href="favicons/apple-touch-icon-144x144.png">
+    <link rel="icon" type="image/png" href="favicons/favicon-32x32.png" sizes="32x32">
+    <link rel="icon" type="image/png" href="favicons/favicon-96x96.png" sizes="96x96">
+    <link rel="icon" type="image/png" href="favicons/favicon-16x16.png" sizes="16x16">
+    <link rel="manifest" href="favicons/manifest.json">
+    <meta name="msapplication-TileColor" content="#2d89ef">
+    <meta name="msapplication-TileImage" content="/mstile-144x144.png">
+    <meta name="theme-color" content="#ffffff">
+
     <style>
         html, body, #map-canvas {
             height: 100%;
@@ -12,9 +28,11 @@
         }
     </style>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/materialize/0.96.1/css/materialize.min.css">
+
     <script src="https://maps.googleapis.com/maps/api/js?v=3.exp&key=AIzaSyDW8g1aWXUVF3ELNbIGpGhXbMYZp7jScVQ"></script>
     <script type="text/javascript" src="https://code.jquery.com/jquery-2.1.1.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/materialize/0.96.1/js/materialize.min.js"></script>
+
     <script>
         var wsocket;
         var sessionId = Math.floor((Math.random() * 10000000) + 1);
@@ -25,6 +43,7 @@
         var userLocation;
         var userMaker;
         var isSharingLocation = false;
+        var shareRideButton;
 
         function initialize() {
             var defaultLatLng = new google.maps.LatLng(32.078043, 34.774177); // Add the coordinates
@@ -76,7 +95,7 @@
 
         function getLocation() {
 
-            function positionSuccess(position) {
+            function newPosition(position) {
                 console.log("New user position",position);
                 userLocation = new google.maps.LatLng(position.coords.latitude, position.coords.longitude);
                 userMaker.setPosition(userLocation);
@@ -96,7 +115,7 @@
                     timeout: 5000,
                     maximumAge: 3000
                 };
-                navigator.geolocation.watchPosition(positionSuccess, positionError, options);
+                navigator.geolocation.watchPosition(newPosition, positionError, options);
             } else {
                 alert("Geolocation is not supported by this browser.");
             }
@@ -114,10 +133,10 @@
             } else if (msgSessionId != sessionId) {
                 console.log("Taxi id "+ msgSessionId + " not on map, adding new marker");
                 var markerLatLng = new google.maps.LatLng(msg["lat"], msg["lng"]);
-                taxiMap[msgSessionId] = new google.maps.Marker({ // Set the marker
-                    position: markerLatLng, // Position marker to coordinates
-                    icon: taxiIcon, //use our image as the marker
-                    map: map, // assign the marker to our map variable
+                taxiMap[msgSessionId] = new google.maps.Marker({
+                    position: markerLatLng,
+                    icon: taxiIcon,
+                    map: map,
                     title: 'Incoming Taxi!'
                 });
             } else {
@@ -135,24 +154,32 @@
         }
 
         function startRide(){
-            var button = $("#share-location-button")[0];
+            if (!shareRideButton) {
+                return;
+            }
+
             if (!isSharingLocation){
-                button.className = "waves-effect waves-light btn red";
-                button.innerHTML = "<i class=\"mdi-maps-directions-bus right\"></i> Stop Sharing";
+                shareRideButton.className = "waves-effect waves-light btn red";
+                shareRideButton.innerHTML = "<i class=\"mdi-maps-directions-bus right\"></i> Stop Sharing";
                 if (userLocation) {
                     sendMessage(userLocation.lat(), userLocation.lng());
                 }
                 isSharingLocation = true;
 
             } else{
-                button.className = "waves-effect waves-light btn green";
-                button.innerHTML = "<i class=\"mdi-maps-directions-bus right\"></i> Share My Taxi";
+                shareRideButton.className = "waves-effect waves-light btn green";
+                shareRideButton.innerHTML = "<i class=\"mdi-maps-directions-bus right\"></i> Share My Taxi";
                 isSharingLocation = false;
             }
         }
 
-
         google.maps.event.addDomListener(window, 'load', initialize);
+
+        $( document ).ready(function() {
+            shareRideButton = $("#share-ride-button")[0];
+        });
+
+
     </script>
 </head>
 <body>
@@ -183,7 +210,7 @@
 <div id="map-canvas"></div>
 
 <div class="fixed-action-btn center" style="width: 100%; bottom: 45px; right: 0">
-    <a id="share-location-button" class="waves-effect waves-light btn green" onclick="startRide()">
+    <a id="share-ride-button" class="waves-effect waves-light btn green" onclick="startRide()">
         <i class="mdi-maps-directions-bus right"></i>
         Share My Taxi
     </a>
