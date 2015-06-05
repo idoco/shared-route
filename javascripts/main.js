@@ -55,6 +55,7 @@ function initialize() {
 
     google.maps.event.addListenerOnce(map, 'idle', function(){
         $('#loading-spinner').remove();
+        $('#into-modal').openModal();
     });
 }
 
