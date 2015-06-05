@@ -61,7 +61,6 @@ function initialize() {
 function getLocation() {
 
     function newPosition(position) {
-        console.log("New user position",position);
         userLocation = new google.maps.LatLng(position.coords.latitude, position.coords.longitude);
         userMaker.setPosition(userLocation);
 
@@ -90,13 +89,13 @@ function onMessageReceived(evt) {
     var msg = JSON.parse(evt.data); // native API
     var msgSessionId = msg["sessionId"];
     if (taxiMap[msgSessionId]){
-        console.log("Taxi id "+ msgSessionId + " on map, updating marker location");
+        // Taxi id on map, updating marker location
         var newMarkerLatLng = new google.maps.LatLng(msg["lat"], msg["lng"]);
         var newMarker = taxiMap[msgSessionId];
         newMarker.setPosition(newMarkerLatLng)
 
     } else if (msgSessionId != sessionId) {
-        console.log("Taxi id "+ msgSessionId + " not on map, adding new marker");
+        // Taxi id not on map, adding new marker
         var markerLatLng = new google.maps.LatLng(msg["lat"], msg["lng"]);
         taxiMap[msgSessionId] = new google.maps.Marker({
             position: markerLatLng,
@@ -105,12 +104,21 @@ function onMessageReceived(evt) {
             title: 'Incoming Taxi!'
         });
     } else {
-        console.log("Taxi id "+ msgSessionId + " is my taxi. Not adding to map");
+        // Taxi id is my taxi. Not adding to map
     }
 }
+
+function isNearRoute(lat, lng){
+    return !(lat > 32.1009 || lat < 32.0550 || lng > 34.8068 || lng < 34.7596);
+}
+
 function sendMessage(lat, lng) {
-    var msg = '{"sessionId":"' + sessionId + '", "lat":"' + lat + '", "lng":"' + lng + '"}';
-    webSocket.send(msg);
+    if (isNearRoute(lat, lng)){
+        var msg = '{"sessionId":"' + sessionId + '", "lat":"' + lat + '", "lng":"' + lng + '"}';
+        webSocket.send(msg);
+    } else{
+        console.info("User is not on route, filtering out location update " + lat + "," + lng);
+    }
 }
 
 function connectToServer() {
@@ -118,7 +126,7 @@ function connectToServer() {
     webSocket.onmessage = onMessageReceived;
 }
 
-function startRide(){
+function toggleSharingMode(){
     if (!shareRideButton) {
         return;
     }
