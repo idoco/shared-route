@@ -1,53 +1,145 @@
-var sectionHeight = function() {
-  var total    = $(window).height(),
-      $section = $('section').css('height','auto');
 
-  if ($section.outerHeight(true) < total) {
-    var margin = $section.outerHeight(true) - $section.height();
-    $section.height(total - margin - 20);
-  } else {
-    $section.css('height','auto');
-  }
+var webSocket;
+var sessionId = Math.floor((Math.random() * 10000000) + 1);
+var serviceLocation = "ws://sharedroute.cloudapp.net/app";
+var taxiMap = {};
+var taxiIcon;
+var map;
+var userLocation;
+var userMaker;
+var isSharingLocation = false;
+var shareRideButton;
+
+function initialize() {
+    var defaultLatLng = new google.maps.LatLng(32.078043, 34.774177); // Add the coordinates
+
+    var mapOptions = {
+        center: defaultLatLng,
+        zoom: 14, // The initial zoom level when your map loads (0-20)
+        minZoom: 13, // Minimum zoom level allowed (0-20)
+        maxZoom: 17, // Maximum soom level allowed (0-20)
+        zoomControl:false, // Set to true if using zoomControlOptions below, or false to remove all zoom controls.
+        zoomControlOptions: {
+            style:google.maps.ZoomControlStyle.DEFAULT // Change to SMALL to force just the + and - buttons.
+        },
+        mapTypeId: google.maps.MapTypeId.ROADMAP, // Set the type of Map
+        scrollwheel: true, // Disable Mouse Scroll zooming (Essential for responsive sites!)
+        // All of the below are set to true by default, so simply remove if set to true:
+        panControl:false, // Set to false to disable
+        mapTypeControl:false, // Disable Map/Satellite switch
+        scaleControl:false, // Set to false to hide scale
+        streetViewControl:false, // Set to disable to hide street view
+        overviewMapControl:false, // Set to false to remove overview control
+        rotateControl:false // Set to false to disable rotate control
+    };
+    var mapDiv = document.getElementById('map-canvas');
+    map = new google.maps.Map(mapDiv, mapOptions);
+
+    taxiIcon = new google.maps.MarkerImage(
+        "https://raw.githubusercontent.com/idoco/shared-route/master/app/SharedRoute/app/src/main/res/drawable-xhdpi/ic_launcher.png",
+        null, null, null, new google.maps.Size(40,40)); // Create a variable for our marker image.
+
+    userMaker = new google.maps.Marker({ // Set the marker
+        position: defaultLatLng, // Position marker to coordinates
+        map: map, // assign the marker to our map variable
+        title: 'Me!'
+    });
+
+    var ctaLayer = new google.maps.KmlLayer({
+        url: 'http://raw.githubusercontent.com/idoco/shared-route/master/map.kml'
+    });
+    ctaLayer.setMap(map);
+
+    connectToServer();
+    getLocation();
+
+    google.maps.event.addListenerOnce(map, 'idle', function(){
+        $('#loading-spinner').remove();
+    });
 }
 
-$(window).resize(sectionHeight);
+function getLocation() {
 
-$(document).ready(function(){
-  $("section h1, section h2").each(function(){
-    $("nav ul").append("<li class='tag-" + this.nodeName.toLowerCase() + "'><a href='#" + $(this).text().toLowerCase().replace(/ /g, '-').replace(/[^\w-]+/g,'') + "'>" + $(this).text() + "</a></li>");
-    $(this).attr("id",$(this).text().toLowerCase().replace(/ /g, '-').replace(/[^\w-]+/g,''));
-    $("nav ul li:first-child a").parent().addClass("active");
-  });
-  
-  $("nav ul li").on("click", "a", function(event) {
-    var position = $($(this).attr("href")).offset().top - 190;
-    $("html, body").animate({scrollTop: position}, 400);
-    $("nav ul li a").parent().removeClass("active");
-    $(this).parent().addClass("active");
-    event.preventDefault();    
-  });
-  
-  sectionHeight();
-  
-  $('img').load(sectionHeight);
+    function newPosition(position) {
+        console.log("New user position",position);
+        userLocation = new google.maps.LatLng(position.coords.latitude, position.coords.longitude);
+        userMaker.setPosition(userLocation);
+
+        if (isSharingLocation) {
+            sendMessage(userLocation.lat(), userLocation.lng());
+        }
+    }
+
+    function positionError(err) {
+        console.error('ERROR(' + err.code + '): ' + err.message);
+    }
+
+    if (navigator.geolocation) {
+        var options = {
+            enableHighAccuracy: true,
+            timeout: 5000,
+            maximumAge: 3000
+        };
+        navigator.geolocation.watchPosition(newPosition, positionError, options);
+    } else {
+        alert("Geolocation is not supported by this browser.");
+    }
+}
+
+function onMessageReceived(evt) {
+    var msg = JSON.parse(evt.data); // native API
+    var msgSessionId = msg["sessionId"];
+    if (taxiMap[msgSessionId]){
+        console.log("Taxi id "+ msgSessionId + " on map, updating marker location");
+        var newMarkerLatLng = new google.maps.LatLng(msg["lat"], msg["lng"]);
+        var newMarker = taxiMap[msgSessionId];
+        newMarker.setPosition(newMarkerLatLng)
+
+    } else if (msgSessionId != sessionId) {
+        console.log("Taxi id "+ msgSessionId + " not on map, adding new marker");
+        var markerLatLng = new google.maps.LatLng(msg["lat"], msg["lng"]);
+        taxiMap[msgSessionId] = new google.maps.Marker({
+            position: markerLatLng,
+            icon: taxiIcon,
+            map: map,
+            title: 'Incoming Taxi!'
+        });
+    } else {
+        console.log("Taxi id "+ msgSessionId + " is my taxi. Not adding to map");
+    }
+}
+function sendMessage(lat, lng) {
+    var msg = '{"sessionId":"' + sessionId + '", "lat":"' + lat + '", "lng":"' + lng + '"}';
+    webSocket.send(msg);
+}
+
+function connectToServer() {
+    webSocket = new WebSocket(serviceLocation);
+    webSocket.onmessage = onMessageReceived;
+}
+
+function startRide(){
+    if (!shareRideButton) {
+        return;
+    }
+
+    if (!isSharingLocation){
+        shareRideButton.className = "waves-effect waves-light btn red";
+        shareRideButton.innerHTML = "<i class=\"mdi-maps-directions-bus right\"></i> Stop Sharing";
+        if (userLocation) {
+            sendMessage(userLocation.lat(), userLocation.lng());
+        }
+        isSharingLocation = true;
+
+    } else{
+        shareRideButton.className = "waves-effect waves-light btn green";
+        shareRideButton.innerHTML = "<i class=\"mdi-maps-directions-bus right\"></i> Share My Taxi";
+        isSharingLocation = false;
+    }
+}
+
+google.maps.event.addDomListener(window, 'load', initialize);
+
+$( document ).ready(function() {
+    shareRideButton = $("#share-ride-button")[0];
 });
-
-fixScale = function(doc) {
-
-  var addEvent = 'addEventListener',
-      type = 'gesturestart',
-      qsa = 'querySelectorAll',
-      scales = [1, 1],
-      meta = qsa in doc ? doc[qsa]('meta[name=viewport]') : [];
-
-  function fix() {
-    meta.content = 'width=device-width,minimum-scale=' + scales[0] + ',maximum-scale=' + scales[1];
-    doc.removeEventListener(type, fix, true);
-  }
-
-  if ((meta = meta[meta.length - 1]) && addEvent in doc) {
-    fix();
-    scales = [.25, 1.6];
-    doc[addEvent](type, fix, true);
-  }
-};
