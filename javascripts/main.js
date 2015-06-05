@@ -4,6 +4,7 @@ var sessionId = Math.floor((Math.random() * 10000000) + 1);
 var serviceLocation = "ws://sharedroute.cloudapp.net/app";
 var taxiMap = {};
 var taxiIcon;
+var sharedTaxiIcon;
 var map;
 var userLocation;
 var userMaker;
@@ -37,6 +38,10 @@ function initialize() {
 
     taxiIcon = new google.maps.MarkerImage(
         "https://raw.githubusercontent.com/idoco/shared-route/gh-pages/images/taxi_96x96.png",
+        null, null, null, new google.maps.Size(40,40)); // Create a variable for our marker image.
+
+    sharedTaxiIcon = new google.maps.MarkerImage(
+        "https://raw.githubusercontent.com/idoco/shared-route/gh-pages/images/shared_taxi_96x96.png",
         null, null, null, new google.maps.Size(40,40)); // Create a variable for our marker image.
 
     userMaker = new google.maps.Marker({ // Set the marker
@@ -135,6 +140,7 @@ function toggleSharingMode(){
     if (!isSharingLocation){
         shareRideButton.className = "waves-effect waves-light btn red";
         shareRideButton.innerHTML = "<i class=\"mdi-maps-directions-bus right\"></i> Stop Sharing";
+        userMaker.setIcon(sharedTaxiIcon);
         if (userLocation) {
             sendMessage(userLocation.lat(), userLocation.lng());
         }
@@ -143,6 +149,7 @@ function toggleSharingMode(){
     } else{
         shareRideButton.className = "waves-effect waves-light btn green";
         shareRideButton.innerHTML = "<i class=\"mdi-maps-directions-bus right\"></i> Share My Taxi";
+        userMaker.setIcon(null);
         isSharingLocation = false;
     }
 }
