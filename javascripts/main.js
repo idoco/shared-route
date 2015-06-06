@@ -1,7 +1,7 @@
 
 var webSocket;
 var sessionId = Math.floor((Math.random() * 10000000) + 1);
-var serviceLocation = "ws://sharedroute.cloudapp.net/app";
+var serviceLocation = "sharedroute.cloudapp.net/app";
 var taxiMap = {};
 var taxiIcon;
 var sharedTaxiIcon;
@@ -76,7 +76,7 @@ function getLocation() {
     }
 
     function positionError(err) {
-        var message = 'ERROR(' + err.code + '): ' + err.message;
+        var message = 'Error(' + err.code + '): ' + err.message;
         alert(message);
     }
 
@@ -84,7 +84,7 @@ function getLocation() {
         var options = {
             enableHighAccuracy: true,
             timeout: 5000,
-            maximumAge: 3000
+            maximumAge: 5000
         };
         navigator.geolocation.watchPosition(newPosition, positionError, options);
     } else {
@@ -129,7 +129,7 @@ function sendMessage(lat, lng) {
 }
 
 function connectToServer() {
-    webSocket = new WebSocket(serviceLocation);
+    webSocket = new WebSocket('ws://'+serviceLocation);
     webSocket.onmessage = onMessageReceived;
 }
 
