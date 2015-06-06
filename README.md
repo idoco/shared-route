@@ -1,9 +1,15 @@
 # SharedRoute 
 Crowdsourced transit data for share taxis (sherut) in Tel Aviv.
 
-[Online Map](http://idoco.github.io/shared-route/) (under construction)
+[The Webapp](http://idoco.github.io/shared-route/) (Supports all current mobile browsers)
 
-Currently available on the Play store.
+Intro message              |  Live map
+:-------------------------:|:-------------------------:
+![](https://raw.githubusercontent.com/idoco/shared-route/master/webapp-intro.png) |  ![](https://raw.githubusercontent.com/idoco/shared-route/master/webapp-main.png)
+There is a known issue in the webapp when being used form within facebook app internal browser (WebView).
+
+
+Mobile app available on the Play store.
 
 *[![Play Store Badge](https://developer.android.com/images/brand/en_app_rgb_wo_60.png)](https://play.google.com/store/apps/details?id=com.sharedroute.app)*
 
