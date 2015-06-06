@@ -160,9 +160,8 @@ function toggleSharingMode(){
 google.maps.event.addDomListener(window, 'load', initialize);
 
 $( document ).ready(function() {
-    if(!Modernizr.websockets || !Modernizr.geolocation){
-        Materialize.toast('Browser not supported :(', 10000);
-    }
+    Materialize.toast('websocket support: '+Modernizr.websockets, 10000);
+    Materialize.toast('geolocation support: '+Modernizr.geolocation, 10000);
 
     $(".button-collapse").sideNav();
     shareRideButton = $("#share-ride-button")[0];
