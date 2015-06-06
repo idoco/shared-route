@@ -131,6 +131,9 @@ function sendMessage(lat, lng) {
 function connectToServer() {
     webSocket = new WebSocket('ws://'+serviceLocation);
     webSocket.onmessage = onMessageReceived;
+    webSocket.onerror= function(error){
+        alert('Error: '+error);
+    };
 }
 
 function toggleSharingMode(){
@@ -139,6 +142,7 @@ function toggleSharingMode(){
     }
 
     if (!isSharingLocation){
+        Materialize.toast('Sharing your route', 3000);
         shareRideButton.className = "waves-effect waves-light btn red";
         shareRideButton.innerHTML = "<i class=\"mdi-maps-directions-bus right\"></i> Stop Sharing";
         userMaker.setIcon(sharedTaxiIcon);
@@ -148,6 +152,7 @@ function toggleSharingMode(){
         isSharingLocation = true;
 
     } else{
+        Materialize.toast('Stopped sharing', 3000);
         shareRideButton.className = "waves-effect waves-light btn green";
         shareRideButton.innerHTML = "<i class=\"mdi-maps-directions-bus right\"></i> Share My Taxi";
         userMaker.setIcon(null);
