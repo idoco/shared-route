@@ -3,6 +3,7 @@ var webSocket;
 var sessionId = Math.floor((Math.random() * 10000000) + 1);
 var serviceLocation = "sharedroute.cloudapp.net/app";
 var taxiMap = {};
+var updateTimeStampMap = {};
 var taxiIcon;
 var sharedTaxiIcon;
 var map;
@@ -10,6 +11,8 @@ var userLocation;
 var userMaker;
 var isSharingLocation = false;
 var shareRideButton;
+
+const TWO_MINUTES = 2 * 60 * 1000;
 
 function initialize() {
     var defaultLatLng = new google.maps.LatLng(32.078043, 34.774177); // Add the coordinates
@@ -64,6 +67,12 @@ function initialize() {
     });
 }
 
+function connectToServer() {
+    webSocket = new WebSocket('ws://'+serviceLocation);
+    webSocket.onmessage = onMessageReceived;
+    scheduleDeadMarkerCleanUp();
+}
+
 function getLocation() {
 
     function newPosition(position) {
@@ -93,17 +102,19 @@ function getLocation() {
 }
 
 function onMessageReceived(evt) {
-    var msg = JSON.parse(evt.data); // native API
+    var msg = JSON.parse(evt.data);
     var msgSessionId = msg["sessionId"];
+    var lat = msg["lat"];
+    var lng = msg["lng"];
     if (taxiMap[msgSessionId]){
         // Taxi id on map, updating marker location
-        var newMarkerLatLng = new google.maps.LatLng(msg["lat"], msg["lng"]);
-        var newMarker = taxiMap[msgSessionId];
-        newMarker.setPosition(newMarkerLatLng)
+        var newMarkerLatLng = new google.maps.LatLng(lat, lng);
+        var existingMarker = taxiMap[msgSessionId];
+        existingMarker.setPosition(newMarkerLatLng)
 
     } else if (msgSessionId != sessionId) {
         // Taxi id not on map, adding new marker
-        var markerLatLng = new google.maps.LatLng(msg["lat"], msg["lng"]);
+        var markerLatLng = new google.maps.LatLng(lat, lng);
         taxiMap[msgSessionId] = new google.maps.Marker({
             position: markerLatLng,
             icon: taxiIcon,
@@ -111,8 +122,9 @@ function onMessageReceived(evt) {
             title: 'Incoming Taxi!'
         });
     } else {
-        // Taxi id is my taxi. Not adding to map
+        return; // Taxi id is my taxi. Not adding to map
     }
+    updateTimeStampMap[msgSessionId] = evt.timeStamp;
 }
 
 function isNearRoute(lat, lng){
@@ -128,22 +140,39 @@ function sendMessage(lat, lng) {
     }
 }
 
-function connectToServer() {
-    webSocket = new WebSocket('ws://'+serviceLocation);
-    webSocket.onmessage = onMessageReceived;
+function scheduleDeadMarkerCleanUp() {
+    setInterval(function(){
+        var currentTimeStamp = new Date().getTime();
+        $.each( updateTimeStampMap, function( sessionId, lastUpdateTimeStamp ) {
+            if (lastUpdateTimeStamp && currentTimeStamp - lastUpdateTimeStamp > TWO_MINUTES){
+                var marker = taxiMap[sessionId];
+                if (marker) {
+                    marker.setMap(null);
+                }
+                taxiMap[sessionId] = null;
+                updateTimeStampMap[sessionId] = null;
+            }
+        });
+    }, TWO_MINUTES);
 }
 
 function toggleSharingMode(){
     if (!shareRideButton) {
-        return;
+        return; // user clicked before page finished loading
     }
 
     if (!isSharingLocation){
+
+        if (userLocation && !isNearRoute(userLocation.lat(), userLocation.lng())){
+            Materialize.toast('You are too far from the taxi route :(', 5000);
+            return;
+        }
+
         Materialize.toast('Sharing your route', 3000);
         shareRideButton.className = "waves-effect waves-light btn red";
         shareRideButton.innerHTML = "<i class=\"mdi-maps-directions-bus right\"></i> Stop Sharing";
         userMaker.setIcon(sharedTaxiIcon);
-        if (userLocation) {
+        if (userLocation) { // it is possible that the user clicked before we received the first location update
             sendMessage(userLocation.lat(), userLocation.lng());
         }
         isSharingLocation = true;
@@ -160,9 +189,9 @@ function toggleSharingMode(){
 google.maps.event.addDomListener(window, 'load', initialize);
 
 $( document ).ready(function() {
-//    if(!Modernizr.websockets || !Modernizr.geolocation){
-//        Materialize.toast('Browser not supported :(', 10000);
-//    }
+    if(!Modernizr.websockets || !Modernizr.geolocation){
+        Materialize.toast('Browser not supported :(', 10000);
+    }
 
     $(".button-collapse").sideNav();
     shareRideButton = $("#share-ride-button")[0];
