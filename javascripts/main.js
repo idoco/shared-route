@@ -38,11 +38,11 @@ function initialize() {
 
     taxiIcon = new google.maps.MarkerImage(
         "https://raw.githubusercontent.com/idoco/shared-route/gh-pages/images/taxi_96x96.png",
-        null, null, null, new google.maps.Size(40,40)); // Create a variable for our marker image.
+        null, null, null, new google.maps.Size(30,30)); // Create a variable for our marker image.
 
     sharedTaxiIcon = new google.maps.MarkerImage(
         "https://raw.githubusercontent.com/idoco/shared-route/gh-pages/images/shared_taxi_96x96.png",
-        null, null, null, new google.maps.Size(40,40)); // Create a variable for our marker image.
+        null, null, null, new google.maps.Size(30,30)); // Create a variable for our marker image.
 
     userMaker = new google.maps.Marker({ // Set the marker
         position: defaultLatLng, // Position marker to coordinates
