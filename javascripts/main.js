@@ -129,11 +129,12 @@ function sendMessage(lat, lng) {
 }
 
 function connectToServer() {
+    if(!Modernizr.websockets){
+        Materialize.toast('Browser not supported :(', 7000);
+    }
+
     webSocket = new WebSocket('ws://'+serviceLocation);
     webSocket.onmessage = onMessageReceived;
-    webSocket.onerror= function(error){
-        alert('Error: '+error);
-    };
 }
 
 function toggleSharingMode(){
