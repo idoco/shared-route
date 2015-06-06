@@ -76,7 +76,8 @@ function getLocation() {
     }
 
     function positionError(err) {
-        console.error('ERROR(' + err.code + '): ' + err.message);
+        var message = 'ERROR(' + err.code + '): ' + err.message;
+        alert(message);
     }
 
     if (navigator.geolocation) {
