@@ -158,5 +158,6 @@ function toggleSharingMode(){
 google.maps.event.addDomListener(window, 'load', initialize);
 
 $( document ).ready(function() {
+    $(".button-collapse").sideNav();
     shareRideButton = $("#share-ride-button")[0];
 });
