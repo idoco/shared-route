@@ -160,7 +160,7 @@ function toggleSharingMode(){
 google.maps.event.addDomListener(window, 'load', initialize);
 
 $( document ).ready(function() {
-    if(Modernizr.websockets || !Modernizr.geolocation){
+    if(!Modernizr.websockets || !Modernizr.geolocation){
         Materialize.toast('Browser not supported :(', 10000);
     }
 
