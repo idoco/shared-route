@@ -76,8 +76,8 @@ function getLocation() {
     }
 
     function positionError(err) {
-        var message = 'Error(' + err.code + '): ' + err.message;
-        alert(message);
+        console.error('Error(' + err.code + '): ' + err.message);
+        Materialize.toast('Failed to find your location :(', 5000);
     }
 
     if (navigator.geolocation) {
@@ -88,7 +88,7 @@ function getLocation() {
         };
         navigator.geolocation.watchPosition(newPosition, positionError, options);
     } else {
-        alert("Geolocation is not supported by this browser.");
+        Materialize.toast('Browser not supported :(', 7000);
     }
 }
 
@@ -129,10 +129,6 @@ function sendMessage(lat, lng) {
 }
 
 function connectToServer() {
-    if(!Modernizr.websockets){
-        Materialize.toast('Browser not supported :(', 7000);
-    }
-
     webSocket = new WebSocket('ws://'+serviceLocation);
     webSocket.onmessage = onMessageReceived;
 }
@@ -164,6 +160,10 @@ function toggleSharingMode(){
 google.maps.event.addDomListener(window, 'load', initialize);
 
 $( document ).ready(function() {
+    if(Modernizr.websockets || !Modernizr.geolocation){
+        Materialize.toast('Browser not supported :(', 10000);
+    }
+
     $(".button-collapse").sideNav();
     shareRideButton = $("#share-ride-button")[0];
 });
