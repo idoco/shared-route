@@ -60,11 +60,11 @@
             <a href="#!" class="brand-logo">SharedRoute</a>
             <a href="#" data-activates="mobile-demo" class="button-collapse"><i class="mdi-navigation-menu"></i></a>
             <ul class="right hide-on-med-and-down">
-                <li onclick="$('#into-modal').openModal();"><a><i class="mdi-action-info-outline left"></i>About</a></li>
+                <li onclick="showIntroFromNavBar()"><a><i class="mdi-action-info-outline left"></i>About</a></li>
                 <li><a href="https://github.com/idoco/shared-route/">Fork on GitHub</a></li>
             </ul>
             <ul class="side-nav" id="mobile-demo">
-                <li onclick="$('#into-modal').openModal();"><a><i class="mdi-action-info-outline left"></i>About</a></li>
+                <li onclick="showIntroFromNavBar()"><a><i class="mdi-action-info-outline left"></i>About</a></li>
                 <li><a href="https://github.com/idoco/shared-route/">Fork on GitHub</a></li>
             </ul>
         </div>
@@ -72,8 +72,8 @@
 </div>
 
 <!-- Modal Structure -->
-<div id="into-modal" class="modal">
-    <div class="modal-content">
+<div id="into-modal" class="modal" style="max-width: 500px;">
+    <div class="modal-content" >
         <h5>Welcome To SharedRoute!</h5>
         <p>No more guessing when the next share taxi will arrive. Now you can get realtime updates
             from fellow <i>sherut</i> riders like you.</p>
